@@ -1,6 +1,6 @@
 {
   "name": "skripsimate",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "AI-powered thesis planning desktop application",
   "main": "public/electron.js",
   "homepage": "./",
