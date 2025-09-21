@@ -28,3 +28,8 @@ jobs:
 
       - name: Build test
         run: npm run build
+        
+      - name: Verify build files
+        run: |
+          ls -la build/
+          test -f build/index.html
