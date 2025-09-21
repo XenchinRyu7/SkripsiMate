@@ -29,7 +29,7 @@ This project and everyone participating in it is governed by our commitment to c
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/your-username/SkripsiMate.git
+   git clone https://github.com/XenchinRyu7/SkripsiMate.git
    cd SkripsiMate
    ```
 
@@ -37,13 +37,7 @@ This project and everyone participating in it is governed by our commitment to c
    ```bash
    npm install
    ```
-
-4. Create a `.env` file in the root directory:
-   ```env
-   GEMINI_API_KEY=your_gemini_api_key_here
-   ```
-
-5. Start the development server:
+4. Start the development server:
    ```bash
    npm run dev
    ```
