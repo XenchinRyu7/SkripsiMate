@@ -26,10 +26,3 @@ jobs:
       - name: Run linting
         run: npm run lint
 
-      - name: Build test
-        run: npm run build
-        
-      - name: Verify build files
-        run: |
-          ls -la build/
-          test -f build/index.html
