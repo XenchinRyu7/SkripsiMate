@@ -52,7 +52,8 @@
         }
       ],
       "icon": "assets/icon.ico",
-      "publisherName": "SkripsiMate Team"
+      "publisherName": "SkripsiMate Team",
+      "publish": null
     },
     "mac": {
       "target": [
@@ -74,7 +75,8 @@
       "icon": "assets/icon.icns",
       "category": "public.app-category.productivity",
       "identity": null,
-      "gatekeeperAssess": false
+      "gatekeeperAssess": false,
+      "publish": null
     },
     "linux": {
       "target": [
@@ -99,7 +101,8 @@
       ],
       "icon": "assets/icon.png",
       "category": "Office",
-      "maintainer": "Saeful Rohman Developer <saefulrohmandevelopers@gmail.com>"
+      "maintainer": "Saeful Rohman Developer <saefulrohmandevelopers@gmail.com>",
+      "publish": null
     },
     "nsis": {
       "oneClick": false,
