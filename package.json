@@ -1,6 +1,6 @@
 {
   "name": "skripsimate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A modern Electron app for thesis planning with AI assistance",
   "main": "dist/main.js",
   "homepage": "./",
@@ -17,7 +17,13 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "type-check": "tsc --noEmit"
   },
-  "keywords": ["electron", "react", "thesis", "ai", "planning"],
+  "keywords": [
+    "electron",
+    "react",
+    "thesis",
+    "ai",
+    "planning"
+  ],
   "author": "SkripsiMate Team",
   "license": "MIT",
   "devDependencies": {
