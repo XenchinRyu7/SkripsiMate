@@ -1,6 +1,6 @@
 {
   "name": "skripsimate",
-  "version": "1.1.1",
+  "version": "1.0.0",
   "description": "A modern Electron app for thesis planning with AI assistance",
   "main": "dist/main.js",
   "homepage": "./",
