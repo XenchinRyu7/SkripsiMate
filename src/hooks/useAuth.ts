@@ -8,7 +8,6 @@ import {
   signInWithEmail,
   signUpWithEmail,
   signInWithGoogle,
-  getGoogleRedirectResult,
   signOut as firebaseSignOut,
   getCurrentUser,
 } from '@/lib/firebase';
@@ -30,23 +29,6 @@ export const useAuth = (): UseAuthReturn => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for redirect result (Google OAuth)
-    const checkRedirectResult = async () => {
-      try {
-        const { user, error } = await getGoogleRedirectResult();
-        if (error) {
-          setError(error);
-        }
-        if (user) {
-          setUser(user);
-        }
-      } catch (err: any) {
-        console.error('Redirect result error:', err);
-      }
-    };
-
-    checkRedirectResult();
-
     // Listen to auth state changes
     const unsubscribe = onAuthChange((user) => {
       setUser(user);
@@ -91,13 +73,24 @@ export const useAuth = (): UseAuthReturn => {
     try {
       setLoading(true);
       setError(null);
-      // signInWithGoogle will redirect the page, so we don't need to wait for result here
-      await signInWithGoogle();
-      // User will be set after redirect via getGoogleRedirectResult in useEffect
+      const { user, error } = await signInWithGoogle();
+      if (error) {
+        if (error === 'Sign in cancelled') {
+          // User closed popup, don't throw error
+          setLoading(false);
+          return;
+        }
+        throw new Error(error);
+      }
+      if (user) {
+        setUser(user);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to sign in with Google');
       setLoading(false);
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -6,8 +6,6 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -68,28 +66,17 @@ export const signInWithEmail = async (email: string, password: string) => {
 };
 
 /**
- * Sign in with Google OAuth using redirect (more reliable than popup)
+ * Sign in with Google OAuth using popup (better UX, no full screen redirect)
  */
 export const signInWithGoogle = async () => {
   try {
-    await signInWithRedirect(auth, googleProvider);
-    return { user: null, error: null }; // User will be available after redirect
+    const result = await signInWithPopup(auth, googleProvider);
+    return { user: result.user, error: null };
   } catch (error: any) {
-    return { user: null, error: error.message };
-  }
-};
-
-/**
- * Get redirect result after OAuth redirect
- */
-export const getGoogleRedirectResult = async () => {
-  try {
-    const result = await getRedirectResult(auth);
-    if (result) {
-      return { user: result.user, error: null };
+    // Handle popup closed by user
+    if (error.code === 'auth/popup-closed-by-user') {
+      return { user: null, error: 'Sign in cancelled' };
     }
-    return { user: null, error: null };
-  } catch (error: any) {
     return { user: null, error: error.message };
   }
 };

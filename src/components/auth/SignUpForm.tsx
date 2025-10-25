@@ -65,10 +65,11 @@ export const SignUpForm: React.FC = () => {
       setIsLoading(true);
       clearError();
       await signInWithGoogle();
-      // Don't redirect here - signInWithGoogle will redirect to Google
-      // After redirect back, useEffect will handle routing to dashboard
+      // Popup will open for account selection
+      // After successful login, useEffect will handle routing to dashboard
     } catch (err) {
       console.error('Google sign in failed:', err);
+    } finally {
       setIsLoading(false);
     }
   };
