@@ -33,6 +33,15 @@ export const useAuth = (): UseAuthReturn => {
     const unsubscribe = onAuthChange((user) => {
       setUser(user);
       setLoading(false);
+      
+      // Set/remove cookie for middleware auth check
+      if (user) {
+        // Set cookie when user is authenticated
+        document.cookie = `firebase-auth=true; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      } else {
+        // Remove cookie when user logs out
+        document.cookie = 'firebase-auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      }
     });
 
     // Cleanup subscription

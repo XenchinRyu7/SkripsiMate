@@ -18,10 +18,13 @@ export const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [validationError, setValidationError] = useState('');
 
-  // Auto-redirect if user is already authenticated (after Google redirect)
+  // Auto-redirect if user is already authenticated
   React.useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      // Check if there's a redirect parameter
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectTo = searchParams.get('redirect') || '/dashboard';
+      router.push(redirectTo);
     }
   }, [user, router]);
 
