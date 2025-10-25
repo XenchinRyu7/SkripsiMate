@@ -60,3 +60,8 @@ logs
 .tmp
 tmp/
 temp/
+
+# Private/Personal files
+LOVABLE_PROMPT.md
+PERSONAL_NOTES.md
+TODO.md

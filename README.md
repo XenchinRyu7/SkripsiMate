@@ -1,15 +1,44 @@
-# 📚 SkripsiMate - AI-Powered Thesis Planner
+<div align="center">
 
-> Plan your thesis journey with interactive AI assistance and visual roadmaps
+# 📚 SkripsiMate
 
-![SkripsiMate](https://img.shields.io/badge/Status-MVP-green)
-![License](https://img.shields.io/badge/License-MIT-blue)
-![Next.js](https://img.shields.io/badge/Next.js-16-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+### AI-Powered Thesis Planning Platform
+
+*Plan your thesis journey with intelligent AI agents and visual roadmaps*
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+[![Gemini AI](https://img.shields.io/badge/Gemini-2.5%20Pro-orange)](https://deepmind.google/technologies/gemini/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)](https://supabase.com/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Made in Indonesia](https://img.shields.io/badge/Made%20in-Indonesia%20🇮🇩-red)](https://github.com/XenchinRyu7)
+
+[Features](#-features) •
+[Demo](#-demo) •
+[Installation](#-quick-start) •
+[Documentation](#-documentation) •
+[Contributing](#-contributing) •
+[Support](#-support)
+
+</div>
+
+---
+
+## 📹 Demo
+
+> **Live Demo:** [Coming Soon]  
+> **Screenshots:** [See below](#-screenshots)
+
+<div align="center">
+  <i>🎥 Demo video and screenshots coming soon!</i>
+</div>
+
+---
 
 ## 🌟 Features
 
-### 🤖 **Interactive AI Agent**
+### 🤖 **AI Agents System** (BETA)
 - Generate comprehensive thesis roadmaps automatically
 - Break down complex tasks into actionable steps
 - Refine and improve node descriptions
@@ -237,43 +266,72 @@ Returns: Similar nodes based on semantic search
 
 ## 🚧 Roadmap
 
-### Phase 1 - MVP ✅
-- [x] Authentication
-- [x] Dashboard
-- [x] Canvas Editor
-- [x] AI Generation
-- [x] RAG System
+### Phase 1 - MVP ✅ (COMPLETED)
+- [x] Authentication (Email + Google OAuth)
+- [x] Dashboard with project management
+- [x] Canvas Editor (Figma-like experience)
+- [x] AI Generation (Gemini 2.5 Pro)
+- [x] RAG System (Vector search with embeddings)
 
-### Phase 2 - Enhancement
-- [ ] Export (JSON, Markdown, PDF)
-- [ ] Advanced node editing
-- [ ] Template library
-- [ ] Guideline upload (PDF RAG)
+### Phase 2 - Enhancement ✅ (COMPLETED)
+- [x] Export (JSON, Markdown)
+- [x] Advanced node editing (drag, connect, style)
+- [x] Edge Style Toolbar (curved, straight, elbowed)
+- [x] Manual node creation (Phase, Step, Substep)
+- [x] Auto-format layout
+- [x] Progress tracking with cascade updates
+- [x] Settings & preferences modal
 
-### Phase 3 - Collaboration
-- [ ] Real-time collaboration
-- [ ] Comments & discussions
-- [ ] Share project with mentor
-- [ ] Version history
+### Phase 3 - Collaboration (PLANNED)
+- [ ] Real-time multi-user editing
+- [ ] Comments & discussions on nodes
+- [ ] Share project with mentor/team
+- [ ] Version history & rollback
+- [ ] @mentions in chat
 
-### Phase 4 - Analytics
-- [ ] Progress analytics
-- [ ] Time tracking
-- [ ] Deadline alerts
-- [ ] Productivity insights
+### Phase 4 - Advanced Features (PLANNED)
+- [ ] Export to PDF with styling
+- [ ] Template library (by major/field)
+- [ ] Guideline upload (PDF RAG for thesis requirements)
+- [ ] Mobile app (React Native)
+- [ ] Integration with Notion, Google Drive, Obsidian
+- [ ] Advanced analytics dashboard
+- [ ] Deadline alerts & notifications
+- [ ] Custom AI model fine-tuning
 
 ## 🤝 Contributing
 
-Contributions welcome! Please:
+We welcome contributions from the community! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
+
+**Please read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.**
+
+Quick steps:
 1. Fork the repository
 2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
 4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
+5. Open a Pull Request
+
+**Good First Issues:** Look for issues tagged `good first issue` or `help wanted`
+
+## 💖 Support
+
+If you find SkripsiMate helpful, consider supporting the project:
+
+- ⭐ **Star this repository** on GitHub
+- 🐛 **Report bugs** and suggest features via [Issues](https://github.com/XenchinRyu7/SkripsiMate/issues)
+- 📣 **Share** SkripsiMate with fellow students
+- ☕ **Buy me a coffee** via [Trakteer](https://trakteer.id/saefulrohman) or [Saweria](https://saweria.co/saefulrohman)
+- 💻 **Contribute code** via Pull Requests
+- 📚 **Improve documentation**
+
+Every contribution, big or small, is valuable! 🙏
 
 ## 📄 License
 
-MIT License - see [LICENSE](./LICENSE)
+This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE) file for details.
+
+**TL;DR:** You can use, modify, and distribute this software freely, even for commercial purposes. Just include the original license and copyright notice.
 
 ## 🙏 Acknowledgments
 
@@ -284,12 +342,49 @@ MIT License - see [LICENSE](./LICENSE)
 - [Supabase](https://supabase.com) - Database
 - [Google Gemini](https://deepmind.google/technologies/gemini/) - AI model
 
-## 💬 Contact
+## 👥 Contributors
 
-For questions or support, please open an issue.
+Thanks to all contributors who have helped make SkripsiMate better!
+
+<!-- readme: contributors -start -->
+<a href="https://github.com/XenchinRyu7/SkripsiMate/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=XenchinRyu7/SkripsiMate" />
+</a>
+<!-- readme: contributors -end -->
+
+*Want to see your name here? [Contribute!](CONTRIBUTING.md)*
+
+## 📞 Contact & Support
+
+- 🐛 **Bug Reports:** [GitHub Issues](https://github.com/XenchinRyu7/SkripsiMate/issues)
+- 💡 **Feature Requests:** [GitHub Discussions](https://github.com/XenchinRyu7/SkripsiMate/discussions)
+- 💬 **Community Chat:** [Discord](https://discord.gg/skripsimate) *(coming soon)*
+- 📧 **Email:** [Contact Developer](mailto:saefulrohman@example.com)
+- 🐦 **Twitter:** [@YourTwitter](https://twitter.com/yourhandle) *(optional)*
+- 💼 **LinkedIn:** [Saeful Rohman](https://linkedin.com/in/yourprofile) *(optional)*
+
+## 📚 Documentation
+
+- 📖 [Setup Instructions](SETUP_INSTRUCTIONS.md) - How to install and configure
+- 🚀 [Deployment Guide](docs/DEPLOYMENT.md) - Deploy to production
+- 🗄️ [Database Setup](docs/SUPABASE_SETUP.md) - Supabase configuration
+- 🤝 [Contributing Guide](CONTRIBUTING.md) - How to contribute
+- 🔒 [Security Policy](SECURITY.md) - Report vulnerabilities
+- 📝 [Changelog](CHANGELOG.md) - Version history
+- ⚖️ [Code of Conduct](CODE_OF_CONDUCT.md) - Community guidelines
 
 ---
 
-**Built with ❤️ for Indonesian students**
+<div align="center">
 
-*Bantu mahasiswa Indonesia menyelesaikan skripsi dengan AI assistance!* 🚀
+**Built with ❤️ by [Saeful Rohman](https://github.com/XenchinRyu7)**
+
+*Helping Indonesian students complete their thesis with AI assistance!*
+
+### ⭐ Star us on GitHub — it motivates us a lot!
+
+[Report Bug](https://github.com/XenchinRyu7/SkripsiMate/issues) •
+[Request Feature](https://github.com/XenchinRyu7/SkripsiMate/discussions) •
+[Join Community](https://discord.gg/skripsimate)
+
+</div>
