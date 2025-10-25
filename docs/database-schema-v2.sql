@@ -91,28 +91,9 @@ CREATE TABLE IF NOT EXISTS collaboration_invites (
 -- ADMIN SYSTEM
 -- ============================================
 
--- Admin users table
-CREATE TABLE IF NOT EXISTS admin_users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL UNIQUE,
-  email TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('super_admin', 'admin', 'support')) DEFAULT 'admin',
-  permissions JSONB NOT NULL DEFAULT '[]'::jsonb,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  last_login TIMESTAMPTZ
-);
-
--- Admin activity log
-CREATE TABLE IF NOT EXISTS admin_logs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  admin_id TEXT NOT NULL,
-  action TEXT NOT NULL,
-  resource_type TEXT NOT NULL,
-  resource_id TEXT,
-  details JSONB,
-  ip_address TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+-- NOTE: Admin system is managed separately in a different service
+-- This is an open-source project, admin controls are not part of core app
+-- For cloud-hosted version, admin panel will be a separate application
 
 -- ============================================
 -- USAGE TRACKING
@@ -174,28 +155,13 @@ CREATE POLICY "Users can view relevant invites" ON collaboration_invites
     invitee_email = auth.jwt()->>'email'
   );
 
--- Admin tables: only admins can access (we'll handle this in API)
-ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admin_logs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Only admins access admin tables" ON admin_users
-  FOR ALL USING (
-    user_id IN (SELECT user_id FROM admin_users WHERE user_id = auth.uid()::text)
-  );
+-- Admin tables removed - handled in separate admin service
 
 -- ============================================
 -- FUNCTIONS
 -- ============================================
 
--- Function to check if user is admin
-CREATE OR REPLACE FUNCTION is_admin(check_user_id TEXT)
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM admin_users 
-    WHERE user_id = check_user_id
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- Admin functions removed - handled in separate admin service
 
 -- Function to check subscription status
 CREATE OR REPLACE FUNCTION check_user_subscription(check_user_id TEXT)
@@ -337,13 +303,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- SEED DATA (Initial Setup)
 -- ============================================
 
--- Create initial admin (replace with your Firebase UID)
--- INSERT INTO admin_users (user_id, email, role, permissions)
--- VALUES ('YOUR_FIREBASE_UID', 'your@email.com', 'super_admin', '["all"]'::jsonb);
+-- NOTE: For self-hosted version, all users have full access
+-- For cloud-hosted version, coupon management will be handled by separate admin service
 
--- Create sample coupons for judges
+-- Sample coupon codes (optional, for cloud version):
 -- INSERT INTO coupon_codes (code, description, plan, duration_months, max_redemptions)
 -- VALUES 
 --   ('JUDGE2024', 'Hackathon Judge Access', 'pro', 3, 10),
 --   ('EARLYBIRD', 'Early Access PRO', 'pro', 1, 50);
+
+-- For self-hosted users: You have unlimited access to all features!
+-- No subscriptions or coupons needed. Enjoy! 🚀
 

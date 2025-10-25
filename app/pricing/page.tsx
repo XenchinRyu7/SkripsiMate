@@ -150,7 +150,7 @@ export default function PricingPage() {
               </Button>
             </div>
             <p className="text-sm text-gray-500 mt-4">
-              💡 <strong>Hackathon Judges:</strong> Contact owner for special access code
+              💡 <strong>Self-Hosted is Always FREE:</strong> Clone the repo and host it yourself with unlimited everything!
             </p>
           </div>
         </Card>
@@ -265,10 +265,10 @@ export default function PricingPage() {
             <Card variant="glass-card">
               <div className="p-6">
                 <h3 className="font-bold text-gray-900 mb-2">
-                  🔑 I have a coupon code, where do I redeem it?
+                  📖 Is SkripsiMate really open source?
                 </h3>
                 <p className="text-gray-600">
-                  Go to your Dashboard → Settings → Subscription → Redeem Coupon. Coupon codes are currently for early access and special partners.
+                  Yes! Licensed under MIT. You can view the code, modify it, and even deploy your own version. Cloud plans are just for convenience.
                 </p>
               </div>
             </Card>
