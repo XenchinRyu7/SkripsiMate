@@ -1,0 +1,2283 @@
+---
+description: this ia an requirement to build this workspace project
+alwaysApply: false
+---
+# SkripsiMate - Project Requirements
+
+## 1. Overview
+
+SkripsiMate adalah aplikasi web perencana alur skripsi berbasis AI Agent yang memungkinkan pengguna membuat struktur skripsi berupa flow node seperti papan desain (Figma-style board). Sistem menggunakan AI Agent (Gemini 2.5 Pro) dengan fitur RAG untuk context understanding dan dapat berinteraksi langsung dengan nodes di canvas.
+
+**Unique Value:**
+- 🤖 **Interactive AI Agent**: AI yang bisa modify nodes langsung, bukan cuma suggest
+- 🧠 **RAG Context Understanding**: AI pahami keseluruhan project pakai vector search
+- 🎨 **Glassmorphism UI**: Modern, aesthetic, professional
+- 🎯 **Figma-like Experience**: Smooth drag, zoom, pan seperti design tools
+- 📊 **Complete Roadmap**: Bukan cuma struktur BAB, tapi step-by-step actionable tasks
+
+Target: MVP dalam 2 hari (hackathon-ready), scalable architecture untuk pengembangan lanjutan.
+
+---
+
+## 1.5 Application Flow & Visual Mockups
+
+### Flow Diagram
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
+│ Login Page  │ ──> │  Dashboard   │ ──> │  Canvas Editor  │
+│ (Firebase)  │     │ (Projects)   │     │  (React Flow)   │
+└─────────────┘     └──────────────┘     └─────────────────┘
+      │                    │                      │
+      │                    │                      │
+   [Auth]            [Create/Select]        [Edit Project]
+                         Project
+```
+
+---
+
+### A. Login Page (Glassmorphism)
+```
+┌────────────────────────────────────────────────────────┐
+│                                                        │
+│              [Gradient Background]                     │
+│                                                        │
+│      ┌────────────────────────────────────┐          │
+│      │   [Glass Card - Centered]          │          │
+│      │                                    │          │
+│      │   📚 SkripsiMate                   │          │
+│      │   AI-Powered Thesis Planner        │          │
+│      │                                    │          │
+│      │   ┌──────────────────────────┐    │          │
+│      │   │  📧 Email                │    │          │
+│      │   │  [email input]           │    │          │
+│      │   └──────────────────────────┘    │          │
+│      │                                    │          │
+│      │   ┌──────────────────────────┐    │          │
+│      │   │  🔒 Password             │    │          │
+│      │   │  [password input]        │    │          │
+│      │   └──────────────────────────┘    │          │
+│      │                                    │          │
+│      │   [Sign In Button - Blue]         │          │
+│      │                                    │          │
+│      │   ─────── or ───────              │          │
+│      │                                    │          │
+│      │   [🔵 Continue with Google]       │          │
+│      │                                    │          │
+│      │   No account? [Sign Up]           │          │
+│      │                                    │          │
+│      └────────────────────────────────────┘          │
+│                                                        │
+└────────────────────────────────────────────────────────┘
+```
+
+---
+
+### B. Dashboard Page (Main View)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  [Glass Header]                                                 │
+│  👤 Profile ▼    SkripsiMate        🔔 Notifications  🌙 Theme │
+│  John Doe                                                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │  Welcome back, John! 👋                                │   │
+│  │  You have 3 projects in progress                       │   │
+│  └────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ┌──────────────────────┐  ┌──────────────────────┐          │
+│  │  📊 Stats Card       │  │  🎯 Quick Actions    │          │
+│  │  [Glass]             │  │  [Glass]             │          │
+│  │                      │  │                      │          │
+│  │  • 3 Active Projects │  │  [+ New Project]     │          │
+│  │  • 45 Tasks Done     │  │  [📥 Import]         │          │
+│  │  • 2 Near Deadline   │  │  [📚 Templates]      │          │
+│  └──────────────────────┘  └──────────────────────┘          │
+│                                                                 │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │  📂 My Projects                        [+ Create New]  │   │
+│  ├────────────────────────────────────────────────────────┤   │
+│  │                                                         │   │
+│  │  ┌───────────────────────────────────────────────┐    │   │
+│  │  │  [Glass Card - Project 1]                     │    │   │
+│  │  │  📘 Stock Prediction with ML                  │    │   │
+│  │  │  Teknik Informatika • 6 months                │    │   │
+│  │  │  ▓▓▓▓▓░░░░░ 50% complete • 25/50 steps        │    │   │
+│  │  │  Last edited: 2 hours ago                     │    │   │
+│  │  │  [Open] [Export] [⋯ More]                     │    │   │
+│  │  └───────────────────────────────────────────────┘    │   │
+│  │                                                         │   │
+│  │  ┌───────────────────────────────────────────────┐    │   │
+│  │  │  [Glass Card - Project 2]                     │    │   │
+│  │  │  📗 Social Media Impact Research              │    │   │
+│  │  │  Psikologi • 4 months                         │    │   │
+│  │  │  ▓▓▓░░░░░░░ 30% complete • 12/40 steps        │    │   │
+│  │  │  Last edited: 1 day ago                       │    │   │
+│  │  │  [Open] [Export] [⋯ More]                     │    │   │
+│  │  └───────────────────────────────────────────────┘    │   │
+│  │                                                         │   │
+│  │  ┌───────────────────────────────────────────────┐    │   │
+│  │  │  [Empty State - First Time]                   │    │   │
+│  │  │  🎯 No projects yet                           │    │   │
+│  │  │  Create your first thesis roadmap!            │    │   │
+│  │  │  [+ Create Your First Project]                │    │   │
+│  │  └───────────────────────────────────────────────┘    │   │
+│  │                                                         │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### C. Canvas Editor Page (When Project Opened)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  [Glass Header]                                                 │
+│  👤 Profile ▼  📂 Project: Stock Prediction  [Dashboard] [Save]│
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ╔═══════════════════════════════════════╗  ┌───────────────┐ │
+│  ║  React Flow Canvas (80%)             ║  │ 💬 AI Agent   │ │
+│  ║  [Nodes + Edges + Figma-like drag]   ║  │  (20%)        │ │
+│  ╚═══════════════════════════════════════╝  └───────────────┘ │
+│                                                                 │
+│  [Input Form - Generate Roadmap] (collapsible)                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key Visual Features:**
+- ✨ **Glassmorphism**: Frosted glass effect pada semua cards/panels
+- 🎨 **Gradient Background**: Soft blue-white gradient mesh
+- 👤 **Profile Menu**: Top-left dengan dropdown (Settings, Logout)
+- 📊 **Dashboard Stats**: Overview cards dengan glassmorphism
+- 📂 **Project Cards**: List projects dengan progress indicators
+- 🎯 **Empty State**: Friendly prompt untuk create first project
+- 🔵 **CTA Buttons**: Blue gradient untuk primary actions
+
+---
+
+## 2. Tech Stack
+
+* **Frontend Framework**: Next.js 15 latest (App Router, Turbopack)
+* **UI Style**: Tailwind CSS (Glassmorphism UI, gradient biru-putih)
+* **UI Components**: Custom glass components + shadcn/ui (minimal)
+* **Graph Library**: React Flow (interactive node board, Figma-like)
+* **Type System**: TypeScript (strict mode)
+* **Authentication**: Firebase Auth (Email + Google OAuth) 🔐
+* **Backend Runtime**: Next.js Server Actions / API Routes (Edge runtime)
+* **Database**: Supabase (PostgreSQL + Supabase Vector)
+* **Vector Store**: pgvector (embedded in Supabase)
+* **AI Model**: Gemini 2.5 Pro (main agent)
+* **AI Embedding**: Gemini Embedding (1536 dimensions)
+* **AI Agent Pattern**: ReAct (Reason + Act Loop)
+* **RAG**: Pure vector search + graph context
+* **Deployment**: Vercel (Edge functions)
+* **Session Management**: Firebase Auth + Next.js middleware
+
+---
+
+## 3. System Architecture (Clean Architecture)
+
+* **Presentation Layer**: UI page, components, hooks
+* **Application Layer**: Use cases, services, state management
+* **Domain Layer**: Entities, DTO, types
+* **Infrastructure Layer**: AI API, RAG VectorStore, MCP tools, database repository
+* **Shared**: Utils, constants, config
+
+Folder Structure Sample:
+
+```
+src/
+  app/
+  components/
+  core/
+    domain/
+    application/
+    infrastructure/
+    shared/
+```
+
+---
+
+## 4. Core Features
+
+### 4.1 MVP Features
+
+* Input judul/topik skripsi + konteks (jurusan, timeline, dll)
+* Generate **roadmap lengkap** (Phase → Step → Substep → Checklist)
+* Representasi visual ke board (React Flow: node + edge + grouping)
+* **AI Agent interactive** - bisa modify nodes berdasarkan user request
+* Refinement AI per step/node
+* **RAG Context Understanding** - AI pahami keseluruhan project
+* Save/load project via Supabase (JSON + Vector embeddings)
+* UI Drag & Connect antar node
+* Real-time chat dengan AI Agent
+
+### 4.2 AI Agent Actions & Capabilities
+
+#### 4.2.1 Generation Actions
+* **Generate Planning** - Create full thesis roadmap dari input user
+  - Input: Judul, jurusan, timeline, guideline (optional)
+  - Output: Multi-level structure (Phase → Step → Substep)
+  - Include: Estimates, priorities, dependencies, suggestions
+
+* **Generate Resources** - Suggest papers, tutorials, datasets
+  - Use RAG untuk cari referensi relevan
+  - Link ke academic databases (Google Scholar, ArXiv)
+
+#### 4.2.2 Understanding Actions (RAG-Powered)
+* **Analyze Project** - Pahami keseluruhan roadmap & progress
+  - Embed all nodes → Vector DB (Supabase Vector)
+  - Retrieve context saat user tanya/minta action
+  
+* **Context-Aware Chat** - User bisa tanya tentang projectnya
+  - "Apa yang harus saya kerjakan minggu ini?"
+  - "Mana step yang paling penting?"
+  - "Kenapa Chapter 3 depend on Chapter 2?"
+
+#### 4.2.3 Modification Actions (Interactive dengan Nodes)
+* **Refine Node** - Improve description/detail suatu step
+  - User: "Perbaiki detail step 'Data Collection'"
+  - Agent: Analyze context → Update node content → Visual update
+
+* **Break Down Task** - Split complex step jadi substeps
+  - User: "Break down 'Literature Review' jadi lebih detail"
+  - Agent: Create child nodes → Auto-connect → Update positions
+
+* **Reorganize Flow** - Suggest/apply reordering
+  - Agent detect dependencies → Suggest better sequence
+  - Auto-fix cyclic dependencies
+
+* **Add Missing Steps** - Detect gaps in roadmap
+  - Analyze flow → Find missing connections/steps
+  - Suggest additions → Insert nodes
+
+* **Update Estimates** - Adjust timeline based on progress
+  - Track completion → Recalculate remaining time
+  - Update dependent nodes
+
+* **Smart Completion** - Mark dependencies done when ready
+  - Auto-check prerequisites
+  - Suggest next steps
+
+#### 4.2.4 ReAct Pattern Implementation
+```
+User Request → Agent Reasoning → Tool Selection → Action → Observe Result → Loop
+```
+
+Example Flow:
+```
+User: "Saya stuck di data collection, help!"
+
+Agent Reasoning:
+- Retrieve context: User at step "Data Collection" (ID: step-3-2)
+- Check dependencies: "Methodology" (completed ✓)
+- Analyze description: Need datasets for ML model
+- Decision: Need to break down + add resources
+
+Agent Actions:
+1. [TOOL: analyze_node] Get full context of step-3-2
+2. [TOOL: rag_search] Find relevant datasets & tutorials
+3. [TOOL: break_down] Split into micro-tasks:
+   - Setup data pipeline
+   - Download from Yahoo Finance
+   - Clean & preprocess
+   - Validate data quality
+4. [TOOL: update_node] Add resources + checklist
+5. [TOOL: notify_user] Show suggestions
+
+Agent Response:
+"Saya sudah breakdown 'Data Collection' jadi 4 substeps.
+Saya juga tambahkan resources: Yahoo Finance API tutorial + 
+sample preprocessing code. Check node yang sudah di-update!"
+```
+
+---
+
+## 5. AI Features & Architecture
+
+### 5.1 Core AI System (Phase 1 - Day 1)
+
+#### Gemini 2.5 Pro Setup
+* Model: `gemini-2.5-pro-latest` 
+* Temperature: 0.7 (balance creativity & accuracy)
+* Max tokens: 8192 (support complex reasoning)
+* JSON mode: Enforce structured output
+
+#### Agent Prompt Engineering
+```typescript
+const SYSTEM_PROMPTS = {
+  planner: `You are a thesis planning expert...`,
+  refiner: `You are a detail-oriented academic advisor...`,
+  analyzer: `You analyze thesis progress and provide insights...`,
+  modifier: `You help restructure and improve thesis plans...`
+}
+```
+
+#### Structured JSON Output
+```typescript
+interface AgentResponse {
+  reasoning: string           // Why agent decided this
+  action: string             // What action to take
+  toolCalls: ToolCall[]      // Tools to use
+  modifications: NodeUpdate[] // Changes to apply
+  userMessage: string        // Response to user
+}
+```
+
+### 5.2 RAG System (Phase 1 - Day 1 Afternoon)
+
+#### Architecture: **NO MCP Needed - Pure RAG**
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   USER REQUEST                       │
+│     "Help me with literature review chapter"         │
+└────────────────────┬────────────────────────────────┘
+                     │
+                     ▼
+         ┌───────────────────────┐
+         │   RAG Context Builder  │
+         │  (Retrieve Relevant    │
+         │   Project Context)     │
+         └───────────┬───────────┘
+                     │
+        ┌────────────┴────────────┐
+        │                         │
+        ▼                         ▼
+┌───────────────┐         ┌──────────────┐
+│  Vector DB    │         │  Graph DB    │
+│  (Embeddings) │         │  (Relations) │
+└───────┬───────┘         └──────┬───────┘
+        │                        │
+        └────────┬───────────────┘
+                 │
+                 ▼
+      ┌─────────────────────┐
+      │  Context Window     │
+      │  for Gemini Agent   │
+      └──────────┬──────────┘
+                 │
+                 ▼
+      ┌─────────────────────┐
+      │   Gemini 2.5 Pro    │
+      │   ReAct Agent       │
+      └──────────┬──────────┘
+                 │
+                 ▼
+      ┌─────────────────────┐
+      │  Agent Actions:     │
+      │  - Update nodes     │
+      │  - Add resources    │
+      │  - Reorganize flow  │
+      └─────────────────────┘
+```
+
+#### Vector Storage Strategy
+
+**What to Embed:**
+1. **All Node Content**
+   ```typescript
+   {
+     id: "node-123",
+     type: "step",
+     content: "Literature Review - Research ML methods...",
+     metadata: {
+       phase: "Phase 2",
+       priority: "high",
+       status: "in_progress",
+       dependencies: ["node-122"]
+     },
+     embedding: [0.234, 0.567, ...] // 1536 dimensions
+   }
+   ```
+
+2. **User Notes & Annotations**
+   - Notes user tulis di setiap node
+   - Progress updates
+   - Questions/blockers
+
+3. **Project Metadata**
+   ```typescript
+   {
+     title: "Stock Prediction with ML",
+     jurusan: "Teknik Informatika",
+     timeline: "6 months",
+     currentPhase: "Implementation",
+     completedSteps: 15,
+     totalSteps: 42
+   }
+   ```
+
+4. **Guideline Kampus** (Optional - Phase 2)
+   - Upload PDF → Extract text → Chunk → Embed
+   - Use for compliance checking
+
+#### Supabase Vector Implementation
+
+```sql
+-- Enable pgvector extension
+create extension if not exists vector;
+
+-- Table for node embeddings
+create table node_embeddings (
+  id uuid primary key default uuid_generate_v4(),
+  project_id uuid references projects(id),
+  node_id text not null,
+  content text not null,
+  metadata jsonb,
+  embedding vector(1536), -- Gemini embedding dimension
+  created_at timestamp default now()
+);
+
+-- Create HNSW index for fast similarity search
+create index on node_embeddings 
+using hnsw (embedding vector_cosine_ops);
+
+-- Table for project context
+create table project_contexts (
+  id uuid primary key default uuid_generate_v4(),
+  project_id uuid references projects(id),
+  context_type text, -- 'guideline', 'note', 'metadata'
+  content text,
+  embedding vector(1536),
+  created_at timestamp default now()
+);
+```
+
+#### RAG Retrieval Flow
+
+```typescript
+async function getRelevantContext(
+  userQuery: string,
+  projectId: string,
+  topK: number = 5
+): Promise<Context[]> {
+  // 1. Embed user query
+  const queryEmbedding = await embedText(userQuery)
+  
+  // 2. Similarity search
+  const { data } = await supabase.rpc('match_nodes', {
+    query_embedding: queryEmbedding,
+    match_threshold: 0.7,
+    match_count: topK,
+    project_id_filter: projectId
+  })
+  
+  // 3. Also get graph context (connected nodes)
+  const graphContext = await getConnectedNodes(data[0]?.node_id)
+  
+  // 4. Combine vector + graph context
+  return {
+    vectorResults: data,
+    graphContext: graphContext,
+    projectMeta: await getProjectMetadata(projectId)
+  }
+}
+```
+
+#### Agent with RAG Context
+
+```typescript
+async function agentAction(
+  userRequest: string,
+  projectId: string
+) {
+  // 1. Retrieve relevant context via RAG
+  const context = await getRelevantContext(userRequest, projectId)
+  
+  // 2. Build enhanced prompt
+  const prompt = `
+    User Request: ${userRequest}
+    
+    Project Context:
+    - Title: ${context.projectMeta.title}
+    - Current Phase: ${context.projectMeta.currentPhase}
+    - Progress: ${context.projectMeta.completedSteps}/${context.projectMeta.totalSteps}
+    
+    Relevant Nodes:
+    ${context.vectorResults.map(n => `
+      - [${n.metadata.type}] ${n.content}
+        Status: ${n.metadata.status}
+        Dependencies: ${n.metadata.dependencies.join(', ')}
+    `).join('\n')}
+    
+    Connected Nodes:
+    ${context.graphContext.map(n => `- ${n.title}`).join('\n')}
+    
+    Task: ${AGENT_INSTRUCTIONS[requestType]}
+  `
+  
+  // 3. Call Gemini with ReAct pattern
+  const response = await geminiReAct(prompt)
+  
+  // 4. Execute actions (modify nodes, etc.)
+  await executeAgentActions(response.actions)
+  
+  // 5. Update embeddings for modified nodes
+  await updateEmbeddings(response.modifiedNodes)
+  
+  return response
+}
+```
+
+### 5.3 Context Understanding Benefits
+
+**Pure RAG Advantages:**
+- ✅ Everything in Supabase (cloud-native)
+- ✅ Easy to deploy on Vercel
+- ✅ Fast similarity search with pgvector
+- ✅ Simpler architecture for 2-day build
+- ✅ Powerful context understanding without external tools
+- ✅ Real-time project analysis and insights
+
+**Future Enhancement (Post-Hackathon):**
+- Add web search tool (simple API call)
+- Add citation tool (parse academic papers)
+- Add filesystem for local document processing
+
+### 5.4 Context Understanding Examples
+
+#### Example 1: Understand Project Status
+```
+User: "What should I work on next?"
+
+RAG Process:
+1. Retrieve: All nodes with status "pending" or "in_progress"
+2. Filter: Nodes where dependencies are completed
+3. Rank: By priority + estimated time
+4. Context: Current phase + user's past progress
+
+Agent Response:
+"Based on your progress (15/42 steps done), I recommend:
+1. 'Data Preprocessing' - dependencies done, high priority
+2. 'Model Architecture Design' - can start in parallel
+You're in Phase 3 (Implementation), on track to finish in 5 weeks!"
+```
+
+#### Example 2: Modify Node Based on Context
+```
+User: "Break down 'Literature Review' step"
+
+RAG Process:
+1. Retrieve: "Literature Review" node + connected nodes
+2. Context: Project is about "Stock Prediction ML"
+3. Context: Jurusan "Teknik Informatika"
+4. Retrieve: Similar successful thesis structures (from RAG)
+
+Agent Actions:
+1. Create 4 new substeps:
+   - "Search papers on LSTM for stock prediction"
+   - "Review traditional forecasting methods"
+   - "Analyze feature engineering techniques"
+   - "Synthesize findings in literature matrix"
+2. Add resources (papers from RAG)
+3. Auto-connect to parent node
+4. Update embeddings
+
+Visual Update: Node splits into 4 child nodes on canvas
+```
+
+---
+
+## 6. UI/UX Requirements
+
+### 6.1 Design System - **Glassmorphism Style** 🔮
+
+* **Style**: Modern Glassmorphism
+  - Frosted glass effect dengan backdrop blur
+  - Semi-transparent backgrounds
+  - Subtle borders with gradient
+  - Soft shadows and depth layers
+  
+* **Colors**: 
+  - **Primary**: Biru gradient (#2563EB → #3B82F6) 💙
+  - **Secondary**: Putih bersih (#FFFFFF) 🤍
+  - Background: Gradient mesh (#F8FAFC → #EFF6FF → #E0F2FE)
+  - Glass panels: rgba(255, 255, 255, 0.7) dengan backdrop-blur
+  - Borders: rgba(255, 255, 255, 0.2) dengan subtle blue tint
+  - Shadows: rgba(37, 99, 235, 0.1), rgba(0, 0, 0, 0.05)
+  - Accents: Abu-biru soft (#64748B90, #94A3B880)
+  - Text: Dark blue (#1e293b) untuk contrast
+
+* **Glassmorphism CSS Properties**:
+  ```css
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  }
+  
+  .glass-card {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.8),
+      rgba(255, 255, 255, 0.6)
+    );
+    backdrop-filter: blur(12px) saturate(180%);
+    border-radius: 16px;
+    border: 1px solid rgba(209, 213, 219, 0.3);
+  }
+  ```
+
+* **Tailwind Classes**:
+  - `bg-white/70 backdrop-blur-lg`
+  - `border border-white/20`
+  - `shadow-lg shadow-black/10`
+  - `rounded-2xl`
+
+* **Responsif**: Desktop-first (1920x1080 optimal)
+  
+* **Animations**: 
+  - Smooth transitions (200-300ms ease-in-out)
+  - Hover effects: scale(1.02) + brightness increase
+  - Node drag: Follow cursor dengan smooth physics (Figma-like)
+  - Panel slide: Smooth slide-in/out animation
+
+### 6.2 Layout Structure (80% Board / 20% Chat)
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  Header: Logo | Project Selector | Export | Settings (Glass)  │
+├────────────────────────────────────────────────────────────────┤
+│                                                                │
+│  ┌───────────────────────────────────┐  ┌─────────────────┐  │
+│  │                                   │  │                 │  │
+│  │        Main Canvas Area           │  │  AI Chat Panel  │  │
+│  │        (React Flow Board)         │  │  (Collapsible)  │  │
+│  │                                   │  │  [🔽 Toggle]    │  │
+│  │         80% Width                 │  │                 │  │
+│  │                                   │  │  [Glass style]  │  │
+│  │  [Draggable Nodes]                │  │  - Chat history │  │
+│  │  [Edges/Connections]              │  │  - AI messages  │  │
+│  │  [Multi-select]                   │  │  - Quick btns   │  │
+│  │  [Pan & Zoom]                     │  │                 │  │
+│  │  [Context menu]                   │  │  20% Width      │  │
+│  │                                   │  │  (when open)    │  │
+│  │  Controls:                        │  │                 │  │
+│  │  - Zoom in/out                    │  │  [Input field]  │  │
+│  │  - Fit view                       │  │                 │  │
+│  │  - Minimap (bottom right)         │  └─────────────────┘  │
+│  │  - Background pattern             │    (closed = 0%)      │
+│  │                                   │                       │
+│  └───────────────────────────────────┘                       │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Input Form: Judul | Jurusan | Timeline | Generate  │   │
+│  │  (Glass panel, collapsible after first generate)    │   │
+│  └──────────────────────────────────────────────────────┘   │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**Layout Breakdown:**
+- **When chat closed**: Board = 100% width
+- **When chat open**: Board = 80% width, Chat = 20% width
+- **Toggle button**: Floating button di kanan atas canvas
+- **Smooth transition**: `transition-all duration-300 ease-in-out`
+
+### 6.3 Node Types Design (Glassmorphism)
+
+#### Phase Node (Group Container) - **Glass Effect**
+```
+╔══════════════════════════════════════╗
+║ 📅 PHASE 1: Persiapan Awal          ║
+║ ⏰ Duration: 2-3 weeks               ║
+║ 📊 Progress: ▓▓▓▓░░░░ 50%           ║
+╠══════════════════════════════════════╣
+║  [Contains child nodes]              ║
+║  [Glassmorphism background]          ║
+║  [Draggable group]                   ║
+╚══════════════════════════════════════╝
+
+Style: 
+- background: rgba(255, 255, 255, 0.6)
+- backdrop-filter: blur(12px)
+- border: 2px solid rgba(37, 99, 235, 0.3)
+- shadow: 0 8px 32px rgba(31, 38, 135, 0.2)
+```
+
+#### Step Node - **Glass Card**
+```
+┌─────────────────────────────────────┐
+│ ✓ Riset Topik & Literatur           │ ← Badge
+│ 📊 Priority: High                    │
+│ ⏱️  Estimated: 3 days                │
+│ 👤 Status: In Progress               │
+│                                     │
+│ Progress: ▓▓▓▓▓▓░░░░ 60%            │
+│                                     │
+│ 🔗 Dependencies: 0                  │
+│ 📝 Resources: 3 papers              │
+│                                     │
+│ [Hover: Shows quick actions]        │
+└─────────────────────────────────────┘
+
+Hover State:
+- scale(1.02)
+- brightness(1.1)
+- border glow effect
+- Quick action buttons appear
+
+Style:
+- background: linear-gradient(135deg, 
+    rgba(255,255,255,0.8), 
+    rgba(255,255,255,0.6))
+- backdrop-filter: blur(10px)
+- border-radius: 12px
+- cursor: grab (when dragging: grabbing)
+```
+
+#### Substep Node (Compact) - **Mini Glass**
+```
+┌─────────────────────────────┐
+│ □ Search papers on LSTM     │
+│ ⏱️  1 day • 📊 High         │
+└─────────────────────────────┘
+
+Style:
+- Smaller, more compact
+- Same glass effect
+- Minimal padding
+```
+
+#### Node States & Colors
+
+**Status Colors (with opacity):**
+- Pending: `rgba(148, 163, 184, 0.8)` (gray)
+- In Progress: `rgba(59, 130, 246, 0.8)` (blue)
+- Completed: `rgba(34, 197, 94, 0.8)` (green)
+- Blocked: `rgba(239, 68, 68, 0.8)` (red)
+
+**Priority Indicators:**
+- Low: Small dot
+- Medium: Two dots
+- High: Three dots + subtle glow
+- Critical: Pulsing border animation
+
+### 6.4 AI Chat Panel Features
+
+* **Chat History**: Scrollable conversation
+* **Context Awareness Indicator**: Show what AI "sees"
+  ```
+  🔍 Analyzing: 3 nodes, Phase 2, 15% complete
+  ```
+* **Action Buttons**: Quick actions below chat
+  - "Break down this step"
+  - "Add missing connections"
+  - "Suggest next task"
+* **Loading States**: Typing animation when AI thinking
+* **Visual Feedback**: Highlight nodes being modified
+
+### 6.5 Interactive Features (Figma-like Experience)
+
+#### React Flow Implementation
+
+**Core Features:**
+```typescript
+import ReactFlow, {
+  Controls,
+  MiniMap,
+  Background,
+  useNodesState,
+  useEdgesState,
+} from 'reactflow';
+import 'reactflow/dist/style.css';
+```
+
+**Figma-like Interactions:**
+
+1. **Smooth Dragging** 🎯
+   - Nodes follow cursor dengan smooth interpolation
+   - Multi-select dengan Shift + Click atau drag box
+   - Group drag: Drag multiple nodes sekaligus
+   - Snap to grid (optional, toggle-able)
+   - Cursor: `grab` → `grabbing` saat drag
+   
+2. **Pan & Zoom** 🔍
+   - Mouse wheel untuk zoom (smooth easing)
+   - Space + Drag untuk pan canvas
+   - Pinch to zoom (trackpad support)
+   - Double click node untuk focus/zoom to fit
+   - Zoom range: 0.1x - 3x
+
+3. **Node Manipulation** ✏️
+   - Click → Select (blue border glow)
+   - Double-click → Open detail editor
+   - Drag → Reposition (auto-save to DB)
+   - Hover → Show quick actions + tooltip
+   - Right-click → Context menu
+
+4. **Edge Creation** 🔗
+   - Drag from node handle → Create edge
+   - Smart edge routing (avoid overlaps)
+   - Edge types: Bezier, Straight, Step, Smooth Step
+   - Click edge → Show label/delete option
+   - Animated edges for active dependencies
+
+5. **Multi-Selection** 📦
+   - Shift + Click: Add to selection
+   - Ctrl/Cmd + A: Select all
+   - Drag box selection
+   - Group actions: Delete, move, export
+
+6. **Context Menu** (Right-click)
+   ```
+   ┌─────────────────────────┐
+   │ 🤖 Ask AI to refine     │
+   │ 🔽 Break down task      │
+   │ ✅ Mark as complete     │
+   │ ─────────────────────   │
+   │ 📋 Copy                 │
+   │ 📝 Edit details         │
+   │ 🗑️  Delete              │
+   └─────────────────────────┘
+   ```
+
+7. **Keyboard Shortcuts** ⌨️
+   - `Delete/Backspace`: Delete selected
+   - `Ctrl/Cmd + Z`: Undo
+   - `Ctrl/Cmd + Y`: Redo
+   - `Ctrl/Cmd + D`: Duplicate
+   - `Space`: Pan mode
+   - `Escape`: Deselect all
+   - `+/-`: Zoom in/out
+   - `0`: Fit view
+
+8. **Canvas Controls** (Bottom-left corner)
+   ```
+   [🔍+] Zoom in
+   [🔍-] Zoom out
+   [⬜] Fit view
+   [🔒] Lock/Unlock nodes
+   [📐] Toggle grid
+   ```
+
+9. **Minimap** (Bottom-right corner)
+   - Small overview of entire canvas
+   - Shows viewport rectangle
+   - Click to jump to area
+   - Collapsible dengan animation
+
+10. **AI Chat Integration** 💬
+    - Type natural commands
+    - AI automatically highlights relevant nodes
+    - Visual feedback saat AI modify nodes
+    - Real-time updates on canvas
+
+#### Background Pattern
+```typescript
+<Background
+  variant="dots"
+  gap={20}
+  size={1}
+  color="rgba(148, 163, 184, 0.2)"
+/>
+```
+
+#### Auto-Layout Options
+- Hierarchical (top-to-bottom)
+- Dagre layout algorithm
+- Force-directed layout
+- Manual positioning (Figma style)
+
+### 6.6 Tailwind Config for Glassmorphism
+
+```javascript
+// tailwind.config.js
+module.exports = {
+  content: [
+    './src/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50: '#eff6ff',
+          100: '#dbeafe',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+        },
+      },
+      backdropBlur: {
+        xs: '2px',
+      },
+      boxShadow: {
+        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+        'glass-lg': '0 8px 32px 0 rgba(31, 38, 135, 0.25)',
+        'glow': '0 0 20px rgba(59, 130, 246, 0.5)',
+      },
+      animation: {
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'slide-in-right': 'slideInRight 0.3s ease-out',
+        'slide-out-right': 'slideOutRight 0.3s ease-out',
+      },
+      keyframes: {
+        slideInRight: {
+          '0%': { transform: 'translateX(100%)', opacity: 0 },
+          '100%': { transform: 'translateX(0)', opacity: 1 },
+        },
+        slideOutRight: {
+          '0%': { transform: 'translateX(0)', opacity: 1 },
+          '100%': { transform: 'translateX(100%)', opacity: 0 },
+        },
+      },
+    },
+  },
+  plugins: [
+    require('@tailwindcss/forms'),
+  ],
+}
+```
+
+**Utility Classes:**
+```css
+/* Glass panel base */
+.glass {
+  @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-glass;
+}
+
+/* Glass card (nodes) */
+.glass-card {
+  @apply bg-gradient-to-br from-white/80 to-white/60 
+         backdrop-blur-md rounded-2xl 
+         border border-gray-200/30 shadow-glass;
+}
+
+/* Glass panel (chat, header) */
+.glass-panel {
+  @apply bg-white/75 backdrop-blur-xl 
+         border border-white/20 shadow-glass-lg;
+}
+
+/* Hover effects */
+.glass-hover {
+  @apply hover:bg-white/85 hover:shadow-glass-lg 
+         hover:scale-[1.02] hover:brightness-110
+         transition-all duration-200 ease-in-out;
+}
+
+/* Chat panel slide animation */
+.chat-panel-enter {
+  @apply animate-slide-in-right;
+}
+
+.chat-panel-exit {
+  @apply animate-slide-out-right;
+}
+```
+
+**React Flow Custom Styles:**
+```css
+/* Custom node styles */
+.react-flow__node {
+  @apply cursor-grab active:cursor-grabbing;
+}
+
+.react-flow__node.selected {
+  @apply ring-2 ring-blue-500 ring-offset-2 shadow-glow;
+}
+
+/* Custom edge styles */
+.react-flow__edge-path {
+  @apply stroke-blue-400/60 stroke-2;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  @apply stroke-blue-600 stroke-[3px];
+}
+
+/* Background */
+.react-flow__background {
+  @apply bg-gradient-to-br from-slate-50 to-blue-50;
+}
+
+/* Controls */
+.react-flow__controls {
+  @apply glass-panel rounded-lg p-2;
+}
+
+/* Minimap */
+.react-flow__minimap {
+  @apply glass-panel rounded-lg;
+}
+```
+
+---
+
+## 7. API Integration
+
+### 7.1 Firebase Authentication (FREE TIER ✅)
+
+**Firebase Free Tier (Spark Plan):**
+- ✅ Unlimited authentication users
+- ✅ Email/Password auth
+- ✅ Google OAuth (no credit card needed!)
+- ✅ Session management
+- ✅ Secure token handling
+- ✅ **Perfect untuk hackathon!**
+
+**Auth Methods:**
+
+1. **Email/Password**
+   ```typescript
+   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
+   
+   // Sign Up
+   const signUp = async (email: string, password: string) => {
+     const auth = getAuth()
+     const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+     return userCredential.user
+   }
+   
+   // Sign In
+   const signIn = async (email: string, password: string) => {
+     const auth = getAuth()
+     const userCredential = await signInWithEmailAndPassword(auth, email, password)
+     return userCredential.user
+   }
+   ```
+
+2. **Google OAuth**
+   ```typescript
+   import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+   
+   const signInWithGoogle = async () => {
+     const auth = getAuth()
+     const provider = new GoogleAuthProvider()
+     const result = await signInWithPopup(auth, provider)
+     return result.user
+   }
+   ```
+
+3. **Next.js Middleware Protection**
+   ```typescript
+   // middleware.ts
+   import { NextResponse } from 'next/server'
+   import type { NextRequest } from 'next/server'
+   
+   export function middleware(request: NextRequest) {
+     const token = request.cookies.get('auth-token')
+     
+     // Protect dashboard & canvas routes
+     if (!token && !request.nextUrl.pathname.startsWith('/login')) {
+       return NextResponse.redirect(new URL('/login', request.url))
+     }
+     
+     // Redirect to dashboard if already logged in
+     if (token && request.nextUrl.pathname === '/login') {
+       return NextResponse.redirect(new URL('/dashboard', request.url))
+     }
+     
+     return NextResponse.next()
+   }
+   
+   export const config = {
+     matcher: ['/dashboard/:path*', '/project/:path*', '/login']
+   }
+   ```
+
+**User Data Structure:**
+```typescript
+interface User {
+  uid: string  // Firebase UID
+  email: string
+  displayName?: string
+  photoURL?: string
+  provider: 'email' | 'google'
+  createdAt: Date
+  lastLogin: Date
+}
+```
+
+**Session Flow:**
+```
+1. User login → Firebase Auth
+2. Get ID token → Store in cookie (httpOnly)
+3. Middleware validates token
+4. User data synced to Supabase (for project ownership)
+```
+
+---
+
+### 7.2 Gemini API Endpoints (FREE TIER ✅)
+
+**Gemini Free Tier Limits:**
+- ✅ **Gemini 2.5 Pro**: 2 requests/minute (enough untuk development)
+- ✅ **Gemini 2.0 Flash**: 10 requests/minute (fallback option)
+- ✅ **Embedding API**: 1,500 requests/day (plenty!)
+- ✅ No credit card required untuk API key
+- 💡 Tip: Bisa pakai multiple API keys untuk bypass limit
+
+**Generation API**
+- `gemini-2.5-pro-latest:generateContent`
+- Initial roadmap generation (~30 seconds)
+- Node refinement (~5-10 seconds)
+- Break down tasks (~5-10 seconds)
+- Chat responses (~3-5 seconds)
+
+**Embedding API**
+- `text-embedding-004` (1536 dimensions)
+- Batch embed: up to 100 texts per request
+- Embed node content (on create/update)
+- Embed user queries (for similarity search)
+- Fast: ~200ms per request
+
+**Rate Limiting Strategy:**
+```typescript
+// Queue system untuk avoid rate limits
+const requestQueue = []
+const RATE_LIMIT = 2 // requests per minute for 2.5 Pro
+
+async function queuedGeminiRequest(prompt: string) {
+  // Add to queue
+  requestQueue.push(prompt)
+  
+  // Process with rate limiting
+  await processQueue()
+}
+
+// Fallback ke Gemini Flash jika Pro rate limited
+async function generateWithFallback(prompt: string) {
+  try {
+    return await gemini2_5Pro(prompt)
+  } catch (error) {
+    if (error.code === 429) { // Rate limit
+      return await geminiFlash(prompt) // Faster, cheaper
+    }
+    throw error
+  }
+}
+```
+
+**Cost Estimate (Free Tier):**
+- Hackathon demo: **$0** ✅
+- 50 generations/day: **$0** ✅
+- 1000 embeddings/day: **$0** ✅
+
+### 7.2 Supabase APIs (FREE TIER ✅)
+
+**Free Tier Limits:**
+- ✅ 500 MB database space (enough untuk ~1000 projects)
+- ✅ 1 GB file storage (kita pakai minimal)
+- ✅ 2 GB bandwidth/month (enough untuk demo + testing)
+- ✅ Unlimited API requests
+- ✅ **pgvector supported** (vector search gratis!)
+- ⚠️ Paused setelah 1 week inactivity (auto-unpause on request)
+
+**Optimization untuk Free Tier:**
+
+1. **Vector Storage Efficiency**
+   ```typescript
+   // Only embed important nodes (Phase & Step level)
+   // Skip checklist level untuk save space
+   if (node.level <= 2) {
+     await embedAndStore(node)
+   }
+   
+   // Batch embeddings (1 API call untuk multiple nodes)
+   const embeddings = await batchEmbed(nodes)
+   ```
+
+2. **Database Size Management**
+   ```sql
+   -- Limit per user
+   - Max 10 projects per user
+   - Max 100 nodes per project
+   - Auto-cleanup old projects (>30 days inactive)
+   ```
+
+3. **Bandwidth Optimization**
+   - Cache di client-side (localStorage)
+   - Only fetch changed data (incremental updates)
+   - Compress responses
+
+**Supabase Client Setup:**
+```typescript
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // Use anon key for client
+)
+
+// For admin operations (server-side only)
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // Service role for embeddings
+)
+```
+
+**Cost Estimate (Free Tier):**
+- Hackathon (2 days): **$0** ✅
+- Demo + testing (1 month): **$0** ✅
+- 50-100 users: **$0** ✅
+- Production scaling: Upgrade to $25/month (optional)
+
+### 7.3 Next.js API Routes
+
+* **Server Actions** (for AI agent)
+  - `/api/agent/generate` - Generate roadmap
+  - `/api/agent/chat` - Chat with agent
+  - `/api/agent/refine` - Refine node
+  - `/api/agent/breakdown` - Break down task
+
+* **Edge Functions** (for real-time)
+  - Fast AI responses
+  - Streaming support
+  - Low latency
+
+---
+
+## 8. Deployment Strategy (FREE TIER ✅)
+
+### 8.1 Vercel Deployment (FREE)
+
+**Free Tier Includes:**
+- ✅ Unlimited deployments
+- ✅ 100 GB bandwidth/month
+- ✅ Edge Functions (serverless)
+- ✅ Automatic HTTPS
+- ✅ Custom domain (jika ada)
+- ✅ GitHub integration
+- ✅ Preview deployments
+
+**Setup Steps:**
+```bash
+# 1. Install Vercel CLI
+npm i -g vercel
+
+# 2. Login
+vercel login
+
+# 3. Deploy
+vercel --prod
+
+# 4. Set environment variables di Vercel dashboard
+NEXT_PUBLIC_SUPABASE_URL=xxx
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
+SUPABASE_SERVICE_ROLE_KEY=xxx
+GEMINI_API_KEY=xxx
+```
+
+### 8.2 Environment Variables
+
+```env
+# Firebase (Public - safe to expose)
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyxxx...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=skripsimate.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=skripsimate
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=skripsimate.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
+NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:xxx
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx...
+SUPABASE_SERVICE_ROLE_KEY=eyJxxx... # Server-side only
+
+# Gemini AI
+GEMINI_API_KEY=AIzaSyxxx...
+GEMINI_MODEL=gemini-2.5-pro-latest
+
+# Optional
+NEXT_PUBLIC_APP_URL=https://skripsimate.vercel.app
+NODE_ENV=production
+```
+
+**Security Note:**
+- Firebase config keys are safe to expose (designed for client-side)
+- Supabase anon key is safe (protected by RLS policies)
+- Service role key MUST be server-side only
+- Gemini API key MUST be server-side only
+
+### 8.3 Edge Runtime Configuration
+
+```typescript
+// app/api/agent/route.ts
+export const runtime = 'edge' // Fast, low latency
+export const dynamic = 'force-dynamic' // No caching for AI
+
+export async function POST(req: Request) {
+  // AI agent logic here
+}
+```
+
+### 8.4 Total Cost Breakdown 💰
+
+**Hackathon (2 Days):**
+- Authentication: **$0** (Firebase Free - unlimited users!)
+- Next.js hosting: **$0** (Vercel Free)
+- Database: **$0** (Supabase Free)
+- AI API: **$0** (Gemini Free)
+- Domain (optional): **$0-15/year**
+- **TOTAL: $0** ✅
+
+**Production (1000 users/month):**
+- Firebase Auth: **$0** (always free for auth)
+- Vercel: **$0** (within free tier)
+- Supabase: **$0-25** (upgrade jika perlu)
+- Gemini: **$0-20** (upgrade to paid if heavy usage)
+- **TOTAL: $0-45/month**
+
+**Scalability Path:**
+- 0-100 users: **Free tier** ✅
+- 100-1K users: **$0-25/month**
+- 1K-10K users: **$50-100/month**
+- 10K+ users: **$200+/month** (paid plans)
+
+**Note:** Firebase Auth tetap gratis forever untuk unlimited users! 🎉
+
+---
+
+## 9. Timeline Build (2 Hari)
+
+### Day 1 - Core MVP
+
+#### Morning (08:00 - 12:00) - Foundation & Auth
+- [ ] **Setup Project** (30min)
+  - `npx create-next-app@latest` with App Router
+  - Install dependencies: React Flow, Supabase, Firebase, Tailwind
+  - Setup folder structure (Clean Architecture)
+  - Environment variables
+
+- [ ] **Firebase Auth Setup** (1h)
+  - Create Firebase project
+  - Enable Email/Password auth
+  - Enable Google OAuth
+  - Setup Firebase config
+  - Test auth flow
+
+- [ ] **Supabase Setup** (1h)
+  - Create project
+  - Setup tables: users, projects, nodes, embeddings
+  - Enable pgvector extension
+  - Create RPC functions for similarity search
+  - Row Level Security (RLS) policies
+  - Test connection
+
+- [ ] **Login Page UI** (1.5h)
+  - Glassmorphism login card
+  - Email/password form
+  - Google sign-in button
+  - Form validation
+  - Loading states
+  - Error handling
+  - Test auth complete
+
+#### Afternoon (13:00 - 17:00) - Dashboard & AI Core
+- [ ] **Dashboard UI** (2h)
+  - Protected route setup (middleware)
+  - Dashboard layout component
+  - Profile dropdown (top-left)
+  - Stats cards (glassmorphism)
+  - Empty state UI
+  - Create project dialog/modal
+  - Project list with cards
+  - Progress indicators
+  - "Open" project navigation
+
+- [ ] **Gemini Integration** (1h)
+  - API client setup
+  - Planning agent prompt
+  - JSON schema validation
+  - Test generation
+
+- [ ] **Generate Roadmap Feature** (1h)
+  - Input form in canvas page
+  - Call Gemini API
+  - Parse response → Node structure
+  - Save to Supabase with user ID
+  - Basic success/error handling
+
+#### Evening (18:00 - 21:00) - React Flow Canvas
+- [ ] **Canvas Page Setup** (1h)
+  - Canvas page route (/project/[id])
+  - React Flow integration
+  - Glassmorphism node components
+  - Background + Controls + Minimap
+  - Fetch project data
+  - Display nodes from DB
+
+- [ ] **Node Interactions** (1h)
+  - Drag nodes (Figma-like)
+  - Click to select
+  - Create edges
+  - Auto-save positions
+  - Multi-select (basic)
+  - Delete node
+
+- [ ] **AI Chat UI** (1h)
+  - Collapsible chat panel (20% width)
+  - Chat messages list
+  - Input field
+  - Send message to agent
+  - Basic styling (glassmorphism)
+  - Toggle open/close animation
+
+### Day 2 - Polish & Demo
+
+#### Morning (08:00 - 12:00) - AI Agent Enhancement
+- [ ] **RAG Context Retrieval** (1.5h)
+  - Implement similarity search
+  - Get connected nodes (graph context)
+  - Combine contexts for agent
+
+- [ ] **Agent Actions** (2h)
+  - Break down task
+  - Add missing steps
+  - Reorganize flow
+  - Test each action
+
+- [ ] **ReAct Pattern** (30min)
+  - Implement reasoning loop
+  - Tool selection logic
+  - Action execution
+
+#### Afternoon (13:00 - 17:00) - Features & Polish
+- [ ] **Save/Load Projects** (1h)
+  - Save to Supabase
+  - Load existing project
+  - Project list/selector
+
+- [ ] **Export Features** (30min)
+  - Export to JSON
+  - Export to Markdown (bonus)
+
+- [ ] **UI Polish** (1.5h)
+  - Neumorphism refinement
+  - Animations
+  - Loading states
+  - Error handling
+  - Responsive tweaks
+
+- [ ] **Testing & Bug Fixes** (1h)
+  - Test all flows
+  - Fix critical bugs
+  - Edge case handling
+
+#### Evening (17:00 - 20:00) - Deploy & Demo Prep
+- [ ] **Deployment** (1h)
+  - Vercel deployment
+  - Environment variables
+  - Test production build
+  - Custom domain (optional)
+
+- [ ] **Demo Preparation** (1h)
+  - Create demo project
+  - Write demo script
+  - Record demo video (backup)
+  - Prepare presentation
+
+- [ ] **Documentation** (30min)
+  - README.md
+  - Screenshots
+  - Feature list
+  - Setup instructions
+
+- [ ] **Final Testing** (30min)
+  - Full flow walkthrough
+  - Performance check
+  - Mobile compatibility check
+  - Backup plan if issues
+
+### Priority Features (If Time Limited)
+
+**Must Have:**
+1. ✅ Generate roadmap from input
+2. ✅ Display as interactive nodes
+3. ✅ AI chat with context understanding (RAG)
+4. ✅ At least 2 agent actions (refine + break down)
+5. ✅ Save/load projects
+6. ✅ Clean UI with neumorphism
+
+**Nice to Have:**
+- Multiple agent actions (reorganize, add missing)
+- Export features
+- Advanced animations
+- Guideline upload (PDF RAG)
+
+**Skip if Needed:**
+- Real-time collaboration
+- Email notifications
+- Advanced analytics
+- MCP integration
+
+---
+
+## 10. Future Features (Roadmap)
+
+* Kolaborasi real-time
+* Ekspor PDF struktur skripsi
+* Template kampus
+
+---
+
+## 11. Data Structures & Type Definitions
+
+### 11.1 Core Types
+
+```typescript
+// ============================================
+// PROJECT & NODE STRUCTURES
+// ============================================
+
+// ============================================
+// USER STRUCTURES (Firebase Auth)
+// ============================================
+
+interface User {
+  uid: string  // Firebase UID
+  email: string
+  displayName?: string
+  photoURL?: string
+  provider: 'email' | 'google'
+  createdAt: Date
+  lastLogin: Date
+  
+  // Preferences
+  preferences?: {
+    theme: 'light' | 'dark'
+    defaultJurusan?: string
+    defaultTimeline?: string
+  }
+  
+  // Stats (for dashboard)
+  stats?: {
+    totalProjects: number
+    activeProjects: number
+    completedProjects: number
+    totalTasksCompleted: number
+  }
+}
+
+interface Project {
+  id: string
+  userId: string  // Firebase UID (owner)
+  title: string
+  jurusan: string
+  timeline: string  // "6 months"
+  targetDate?: Date
+  description?: string
+  
+  // Ownership & Sharing
+  owner: {
+    uid: string
+    email: string
+    displayName?: string
+  }
+  collaborators?: string[]  // Firebase UIDs (future feature)
+  visibility: 'private' | 'shared'  // For now, all private
+  
+  // Progress tracking
+  metadata: {
+    totalSteps: number
+    completedSteps: number
+    currentPhase: string
+    estimatedCompletion: Date
+    tags: string[]
+    progressPercentage: number  // Calculated
+  }
+  
+  createdAt: Date
+  updatedAt: Date
+  lastAccessedAt: Date  // For "Last edited" display
+}
+
+interface Node {
+  id: string
+  projectId: string
+  
+  // Content
+  title: string
+  description: string
+  type: 'phase' | 'step' | 'substep' | 'checklist'
+  level: number  // 1=phase, 2=step, 3=substep, 4=checklist
+  
+  // Hierarchy
+  parentId?: string
+  childIds: string[]
+  order: number
+  
+  // Status & Progress
+  status: 'pending' | 'in_progress' | 'completed' | 'blocked'
+  progress: number  // 0-100
+  completedAt?: Date
+  
+  // Planning
+  priority: 'low' | 'medium' | 'high' | 'critical'
+  estimatedTime: string  // "3 days", "2 weeks"
+  estimatedHours?: number
+  actualTime?: string
+  
+  // Dependencies
+  dependencies: string[]  // Node IDs this depends on
+  blockedBy: string[]     // Node IDs blocking this
+  
+  // AI Generated
+  aiSuggestions?: string[]
+  resources?: Resource[]
+  checkpoints?: string[]
+  codeTemplates?: CodeTemplate[]
+  
+  // Visual (React Flow)
+  position: { x: number, y: number }
+  dimensions?: { width: number, height: number }
+  style?: NodeStyle
+  
+  // Metadata
+  tags: string[]
+  notes?: string
+  userNotes?: string[]
+  
+  createdAt: Date
+  updatedAt: Date
+  createdBy: 'user' | 'ai'
+}
+
+interface Edge {
+  id: string
+  projectId: string
+  fromNodeId: string
+  toNodeId: string
+  type: 'dependency' | 'sequence' | 'related'
+  label?: string
+  style?: EdgeStyle
+  createdAt: Date
+}
+
+interface Resource {
+  id: string
+  type: 'paper' | 'tutorial' | 'dataset' | 'tool' | 'documentation'
+  title: string
+  url?: string
+  description?: string
+  authors?: string[]
+  year?: number
+  relevance: number  // 0-1 from RAG
+  reason?: string    // Why this is relevant
+  tags: string[]
+}
+
+interface CodeTemplate {
+  id: string
+  language: string
+  title: string
+  description: string
+  code: string
+  usage?: string
+}
+
+// ============================================
+// AI AGENT STRUCTURES
+// ============================================
+
+interface AgentRequest {
+  id: string
+  projectId: string
+  userId: string
+  
+  // Request details
+  type: AgentActionType
+  userMessage: string
+  targetNodeIds?: string[]  // Nodes user is asking about
+  
+  // Context
+  includeFullProject: boolean
+  includeConnectedNodes: boolean
+  maxContextNodes: number
+  
+  timestamp: Date
+}
+
+type AgentActionType =
+  | 'generate_plan'      // Create new roadmap
+  | 'refine_node'        // Improve node content
+  | 'break_down'         // Split into substeps
+  | 'add_missing'        // Add missing steps
+  | 'reorganize'         // Restructure flow
+  | 'analyze_progress'   // Progress insights
+  | 'suggest_next'       // What to do next
+  | 'explain'            // Explain something
+  | 'chat'               // General chat
+
+interface AgentResponse {
+  id: string
+  requestId: string
+  
+  // Reasoning (ReAct)
+  reasoning: {
+    observation: string      // What agent sees
+    thought: string          // What agent thinks
+    plan: string[]          // Steps agent will take
+  }
+  
+  // Actions
+  actions: AgentAction[]
+  
+  // Results
+  modifications: NodeModification[]
+  newNodes?: Node[]
+  newEdges?: Edge[]
+  deletedNodeIds?: string[]
+  deletedEdgeIds?: string[]
+  
+  // Response to user
+  userMessage: string
+  suggestions?: string[]
+  visualChanges?: VisualChange[]
+  
+  // Metadata
+  toolsUsed: string[]
+  executionTime: number
+  tokensUsed: number
+  
+  timestamp: Date
+}
+
+interface AgentAction {
+  type: string
+  tool: string
+  input: any
+  output: any
+  success: boolean
+  error?: string
+}
+
+interface NodeModification {
+  nodeId: string
+  field: keyof Node
+  oldValue: any
+  newValue: any
+  reason: string
+}
+
+interface VisualChange {
+  type: 'highlight' | 'animate' | 'focus' | 'connect'
+  nodeIds: string[]
+  duration?: number
+  message?: string
+}
+
+// ============================================
+// RAG STRUCTURES
+// ============================================
+
+interface NodeEmbedding {
+  id: string
+  projectId: string
+  nodeId: string
+  
+  // Content
+  content: string  // Combined: title + description + notes
+  contentHash: string  // To detect changes
+  
+  // Vector
+  embedding: number[]  // 1536 dimensions for Gemini
+  
+  // Metadata for filtering
+  metadata: {
+    type: string
+    level: number
+    status: string
+    priority: string
+    tags: string[]
+    createdBy: string
+  }
+  
+  createdAt: Date
+  updatedAt: Date
+}
+
+interface RAGContext {
+  // Vector search results
+  similarNodes: {
+    node: Node
+    similarity: number
+    relevance: string
+  }[]
+  
+  // Graph traversal results
+  connectedNodes: {
+    node: Node
+    relationship: 'parent' | 'child' | 'dependency' | 'sibling'
+    distance: number
+  }[]
+  
+  // Project context
+  projectMetadata: {
+    title: string
+    currentPhase: string
+    progress: number
+    completedSteps: number
+    totalSteps: number
+    timeline: string
+  }
+  
+  // User context
+  userHistory?: {
+    recentNodes: string[]
+    commonQuestions: string[]
+    preferences: Record<string, any>
+  }
+  
+  // External knowledge (if available)
+  guidelines?: GuidelineChunk[]
+  
+  totalContextLength: number
+}
+
+interface GuidelineChunk {
+  id: string
+  projectId: string
+  source: string  // PDF filename
+  chunkIndex: number
+  content: string
+  embedding: number[]
+  pageNumber?: number
+  section?: string
+  createdAt: Date
+}
+
+// ============================================
+// UI STRUCTURES
+// ============================================
+
+interface ChatMessage {
+  id: string
+  role: 'user' | 'agent' | 'system'
+  content: string
+  agentResponseId?: string
+  visualChanges?: VisualChange[]
+  attachments?: {
+    type: 'node' | 'resource'
+    id: string
+    preview: string
+  }[]
+  timestamp: Date
+}
+
+interface NodeStyle {
+  backgroundColor?: string
+  borderColor?: string
+  borderWidth?: number
+  borderRadius?: number
+  shadow?: string
+  fontSize?: number
+  fontWeight?: string
+  padding?: number
+}
+
+interface EdgeStyle {
+  strokeColor?: string
+  strokeWidth?: number
+  strokeDasharray?: string
+  animated?: boolean
+}
+
+interface ViewState {
+  zoom: number
+  center: { x: number, y: number }
+  selectedNodeIds: string[]
+  highlightedNodeIds: string[]
+  focusedNodeId?: string
+  miniMapVisible: boolean
+  chatPanelVisible: boolean
+}
+```
+
+### 11.2 Agent Tool Definitions
+
+```typescript
+interface AgentTool {
+  name: string
+  description: string
+  parameters: Record<string, any>
+  execute: (params: any, context: RAGContext) => Promise<any>
+}
+
+const AGENT_TOOLS: AgentTool[] = [
+  {
+    name: 'analyze_node',
+    description: 'Get full context of a specific node including connected nodes',
+    parameters: {
+      nodeId: 'string',
+      includeChildren: 'boolean',
+      includeDependencies: 'boolean'
+    },
+    execute: async (params, context) => { /* ... */ }
+  },
+  {
+    name: 'rag_search',
+    description: 'Search project knowledge base for relevant information',
+    parameters: {
+      query: 'string',
+      filters: 'object',
+      topK: 'number'
+    },
+    execute: async (params, context) => { /* ... */ }
+  },
+  {
+    name: 'break_down_task',
+    description: 'Split a complex task into smaller subtasks',
+    parameters: {
+      nodeId: 'string',
+      targetLevel: 'number',
+      count: 'number'
+    },
+    execute: async (params, context) => { /* ... */ }
+  },
+  {
+    name: 'update_node',
+    description: 'Modify node content, status, or properties',
+    parameters: {
+      nodeId: 'string',
+      updates: 'object',
+      reason: 'string'
+    },
+    execute: async (params, context) => { /* ... */ }
+  },
+  {
+    name: 'create_nodes',
+    description: 'Create new nodes with relationships',
+    parameters: {
+      nodes: 'array',
+      edges: 'array',
+      parentId: 'string?'
+    },
+    execute: async (params, context) => { /* ... */ }
+  },
+  {
+    name: 'reorganize_flow',
+    description: 'Suggest or apply reordering of nodes',
+    parameters: {
+      nodeIds: 'array',
+      strategy: 'string'
+    },
+    execute: async (params, context) => { /* ... */ }
+  },
+  {
+    name: 'find_missing_steps',
+    description: 'Analyze flow and find gaps or missing connections',
+    parameters: {
+      phaseId: 'string?',
+      depth: 'number'
+    },
+    execute: async (params, context) => { /* ... */ }
+  },
+  {
+    name: 'suggest_resources',
+    description: 'Find and suggest relevant resources for a node',
+    parameters: {
+      nodeId: 'string',
+      resourceTypes: 'array',
+      count: 'number'
+    },
+    execute: async (params, context) => { /* ... */ }
+  }
+]
+```
+
+---
+
+## 12. Prompt Templates for AI Agent
+
+### 12.1 System Prompts
+
+```typescript
+const SYSTEM_PROMPTS = {
+  planner: `You are an expert thesis advisor specializing in creating comprehensive 
+academic roadmaps for students. You help students break down their thesis journey 
+into manageable, actionable steps with realistic timelines.
+
+Your output MUST be valid JSON following this structure:
+{
+  "phases": [...],  // 5-8 major phases
+  "reasoning": "...", // Why this structure
+  "estimatedDuration": "6 months"
+}
+
+Consider: Indonesian academic standards, student's jurusan, timeline constraints.`,
+
+  refiner: `You are a detail-oriented academic advisor who improves thesis step 
+descriptions. When given a step, you:
+1. Analyze the current description
+2. Add specific, actionable details
+3. Suggest concrete checkpoints
+4. Recommend relevant resources
+5. Estimate realistic time requirements
+
+Output JSON: { "improved": {...}, "reasoning": "..." }`,
+
+  analyzer: `You are a progress analyst who helps students understand their thesis 
+status. Given project context, you:
+1. Identify completed vs pending work
+2. Detect potential blockers
+3. Suggest priority tasks
+4. Estimate time to completion
+5. Provide motivational insights
+
+Be encouraging but realistic.`,
+
+  modifier: `You are a structural expert who reorganizes thesis plans. You can:
+1. Break down complex tasks into subtasks
+2. Reorder steps for better flow
+3. Add missing steps
+4. Fix dependency issues
+5. Optimize critical path
+
+Always explain your reasoning clearly.`
+}
+```
+
+### 12.2 User Prompt Templates
+
+```typescript
+const USER_PROMPT_TEMPLATES = {
+  generatePlan: (input: GeneratePlanInput) => `
+Create a comprehensive thesis roadmap for:
+
+Title: ${input.title}
+Jurusan: ${input.jurusan}
+Timeline: ${input.timeline}
+Additional context: ${input.context}
+
+Generate a detailed structure with:
+- 5-8 major phases (Persiapan, BAB 1-5, Implementation, Writing, Finalization)
+- 3-5 steps per phase
+- Actionable substeps with checklists
+- Realistic time estimates
+- Clear dependencies
+- Helpful suggestions and resources
+
+Format: Return JSON array of phases with nested steps.
+`,
+
+  refineNode: (node: Node, context: RAGContext) => `
+Improve this thesis step:
+
+Current: ${node.title}
+Description: ${node.description}
+Type: ${node.type}
+Current estimate: ${node.estimatedTime}
+
+Project context:
+- Title: ${context.projectMetadata.title}
+- Phase: ${context.projectMetadata.currentPhase}
+
+Similar steps from project:
+${context.similarNodes.map(n => `- ${n.node.title}`).join('\n')}
+
+Task: Enhance this step with:
+1. More specific description
+2. Concrete checkpoints (3-5)
+3. Relevant resources (papers, tutorials, datasets)
+4. Refined time estimate
+5. Practical tips
+
+Return JSON with improvements and reasoning.
+`,
+
+  breakDown: (node: Node, context: RAGContext) => `
+Break down this complex task into smaller subtasks:
+
+Task: ${node.title}
+Description: ${node.description}
+Current estimate: ${node.estimatedTime}
+
+Context:
+${context.projectMetadata.title}
+Type: ${node.type}
+
+Create 3-5 specific subtasks that:
+1. Are actionable and clear
+2. Have realistic time estimates
+3. Follow logical sequence
+4. Cover all aspects of parent task
+
+Return JSON array of new substeps.
+`
+}
+```
+
+---
+
+## 13. Quick Start Checklist
+
+### Prerequisites (All FREE!)
+- [ ] **Firebase Account**: Sign up di [firebase.google.com](https://firebase.google.com)
+- [ ] **Gemini API Key**: Get dari [Google AI Studio](https://makersuite.google.com/app/apikey)
+- [ ] **Supabase Account**: Sign up di [supabase.com](https://supabase.com)
+- [ ] **Vercel Account**: Sign up di [vercel.com](https://vercel.com) (GitHub auth)
+- [ ] **Node.js 18+**: Install dari [nodejs.org](https://nodejs.org)
+
+### Setup Steps (Day 1 Morning)
+```bash
+# 1. Create Next.js project
+npx create-next-app@latest skripsimate --typescript --tailwind --app
+
+# 2. Install dependencies
+npm install reactflow @supabase/supabase-js @google/generative-ai firebase
+
+# 3. Setup Firebase
+# - Create new project di Firebase Console
+# - Enable Authentication → Email/Password + Google
+# - Get Firebase config (apiKey, authDomain, projectId, etc)
+# - Add to .env.local
+
+# 4. Setup Supabase
+# - Create new project
+# - Enable pgvector extension
+# - Run SQL migrations (provided in docs)
+# - Setup RLS policies for user data isolation
+
+# 5. Setup env variables
+cp .env.example .env.local
+# Add: 
+#   FIREBASE_API_KEY, FIREBASE_AUTH_DOMAIN, etc
+#   GEMINI_API_KEY
+#   NEXT_PUBLIC_SUPABASE_URL, SUPABASE_KEYS
+
+# 6. Run dev server
+npm run dev
+```
+
+### Routes Structure
+```
+/login              → Login/Signup page (public)
+/dashboard          → Project list + stats (protected)
+/project/[id]       → Canvas editor (protected)
+/api/agent/*        → AI agent endpoints (server-side)
+```
+
+### Free Tier Summary ✅
+
+| Service | Free Tier | Sufficient For |
+|---------|-----------|----------------|
+| **Firebase Auth** | Unlimited users, Email + Google OAuth | ✅ Unlimited users, perfect untuk auth |
+| **Vercel** | Unlimited deploys, 100GB bandwidth | ✅ Hackathon + Production (1K users) |
+| **Supabase** | 500MB DB, pgvector included | ✅ ~1000 projects, unlimited queries |
+| **Gemini API** | 2 req/min (Pro), 1500 embeds/day | ✅ Development + Demo (upgrade for production) |
+| **Total Cost** | **$0** | ✅ Perfect untuk hackathon! |
+
+### Development Tips
+- Use Gemini Flash for development (10 req/min)
+- Upgrade to Pro for final demo
+- Cache embeddings untuk save quota
+- Test with small datasets first
+
+---
+
+## 14. Implementation Summary
+
+### Application Flow (Final)
+```
+1. User lands on /login
+   → Email/Password OR Google OAuth (Firebase)
+   → On success → Redirect to /dashboard
+
+2. Dashboard (/dashboard) [Protected]
+   → Shows profile (top-left dropdown)
+   → Shows stats cards (glassmorphism)
+   → Shows project list OR empty state
+   → Click "Create Project" → Modal/Dialog
+   → Fill: Judul, Jurusan, Timeline → Save to Supabase
+   → Click "Open" → Navigate to /project/[id]
+
+3. Canvas Editor (/project/[id]) [Protected]
+   → Load project data (with user ownership check)
+   → If no nodes yet → Show input form (Generate Roadmap)
+   → User fills form → Gemini generates → Nodes displayed
+   → React Flow canvas (80%) + AI Chat (20% collapsible)
+   → User can:
+     - Drag nodes (Figma-like)
+     - Chat with AI agent
+     - AI modifies nodes based on chat
+     - All auto-saved to Supabase
+   → Back to Dashboard button (top header)
+```
+
+### Key Features Summary
+
+**✅ Authentication (Firebase)**
+- Email + Password
+- Google OAuth
+- Protected routes via middleware
+- Profile management
+
+**✅ Dashboard**
+- User profile (top-left)
+- Stats cards (projects count, tasks done)
+- Project list with cards (glassmorphism)
+- Progress indicators per project
+- Empty state for new users
+- Create project modal
+
+**✅ Canvas Editor (React Flow)**
+- Visual node board (80% width)
+- Figma-like drag & drop
+- Multi-select, zoom, pan
+- Minimap & controls
+- Auto-save positions
+
+**✅ AI Agent (Interactive)**
+- Chat panel (20% width, collapsible)
+- Generate full roadmap
+- Refine nodes
+- Break down tasks
+- Reorganize flow
+- RAG context understanding
+
+**✅ Data Persistence**
+- Supabase PostgreSQL
+- User ownership (RLS policies)
+- Vector embeddings (pgvector)
+- Real-time updates
+
+### Tech Stack (All FREE)
+- **Auth**: Firebase (Email + Google) - $0
+- **Frontend**: Next.js 15 + React Flow + Tailwind
+- **Backend**: Next.js API Routes + Edge Functions
+- **Database**: Supabase (PostgreSQL + pgvector) - $0
+- **AI**: Gemini 2.5 Pro + Embeddings - $0
+- **Deployment**: Vercel - $0
+- **TOTAL: $0** untuk hackathon! 🎉
+
+### Demo Script (untuk Juri)
+```
+1. Show login page (glassmorphism design)
+   → Sign in dengan Google (1-click)
+
+2. Dashboard appears
+   → "Hi [Name], you have 0 projects"
+   → Click "Create Your First Project"
+   → Fill: "Stock Prediction with ML", "Teknik Informatika", "6 months"
+   → Click Generate
+
+3. Canvas opens dengan loading animation
+   → Gemini generates roadmap (~30 seconds)
+   → Nodes appear dengan smooth animation
+   → Phase → Steps → Substeps (hierarchical)
+   → Show drag & drop (Figma-like)
+   → Show zoom & pan
+
+4. Open AI Chat panel
+   → Type: "Break down Literature Review step"
+   → AI responds + creates child nodes
+   → Visual feedback on canvas
+   → Nodes update in real-time
+
+5. Back to Dashboard
+   → Show project card dengan progress
+   → Export options (JSON, Markdown)
+```
+
+---
+
+> **Next Step:** Ready to build! All specifications detailed. Use this document as complete reference for AI agent implementation.
+> 
+> **Total Cost: $0** untuk hackathon 2 hari + demo! 🎉
+> 
+> **Perfect untuk Juri:** Clean UI, interactive AI, smooth UX, $0 infrastructure! 💙🤍

@@ -1,0 +1,133 @@
+// Custom hook for Firebase Authentication
+'use client';
+
+import { useState, useEffect } from 'react';
+import { User as FirebaseUser } from 'firebase/auth';
+import {
+  onAuthChange,
+  signInWithEmail,
+  signUpWithEmail,
+  signInWithGoogle,
+  getGoogleRedirectResult,
+  signOut as firebaseSignOut,
+  getCurrentUser,
+} from '@/lib/firebase';
+
+export interface UseAuthReturn {
+  user: FirebaseUser | null;
+  loading: boolean;
+  error: string | null;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signOut: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuth = (): UseAuthReturn => {
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for redirect result (Google OAuth)
+    const checkRedirectResult = async () => {
+      try {
+        const { user, error } = await getGoogleRedirectResult();
+        if (error) {
+          setError(error);
+        }
+        if (user) {
+          setUser(user);
+        }
+      } catch (err: any) {
+        console.error('Redirect result error:', err);
+      }
+    };
+
+    checkRedirectResult();
+
+    // Listen to auth state changes
+    const unsubscribe = onAuthChange((user) => {
+      setUser(user);
+      setLoading(false);
+    });
+
+    // Cleanup subscription
+    return () => unsubscribe();
+  }, []);
+
+  const handleSignIn = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { user, error } = await signInWithEmail(email, password);
+      if (error) throw new Error(error);
+      setUser(user);
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignUp = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { user, error } = await signUpWithEmail(email, password);
+      if (error) throw new Error(error);
+      setUser(user);
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign up');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      // signInWithGoogle will redirect the page, so we don't need to wait for result here
+      await signInWithGoogle();
+      // User will be set after redirect via getGoogleRedirectResult in useEffect
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in with Google');
+      setLoading(false);
+      throw err;
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      await firebaseSignOut();
+      setUser(null);
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign out');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearError = () => {
+    setError(null);
+  };
+
+  return {
+    user,
+    loading,
+    error,
+    signIn: handleSignIn,
+    signUp: handleSignUp,
+    signInWithGoogle: handleGoogleSignIn,
+    signOut: handleSignOut,
+    clearError,
+  };
+};
+
