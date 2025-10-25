@@ -134,7 +134,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
                     <button
                       onClick={() => {
                         setShowDropdown(false);
-                        // TODO: Navigate to settings
+                        router.push('/settings');
                       }}
                       className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-white/50 transition-colors flex items-center space-x-2"
                     >
@@ -144,7 +144,17 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
                     <button
                       onClick={() => {
                         setShowDropdown(false);
-                        // TODO: Navigate to help
+                        router.push('/pricing');
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-white/50 transition-colors flex items-center space-x-2"
+                    >
+                      <span>💳</span>
+                      <span>Pricing</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowDropdown(false);
+                        window.open('https://github.com/XenchinRyu7/SkripsiMate/issues', '_blank');
                       }}
                       className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-white/50 transition-colors flex items-center space-x-2"
                     >

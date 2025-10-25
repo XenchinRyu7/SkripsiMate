@@ -13,9 +13,10 @@ interface CanvasHeaderProps {
   saving?: boolean;
   onExport?: () => void;
   onSettings?: () => void;
+  onShare?: () => void;
 }
 
-export default function CanvasHeader({ project, onBack, onToggleChat, chatOpen, onSave, saving, onExport, onSettings }: CanvasHeaderProps) {
+export default function CanvasHeader({ project, onBack, onToggleChat, chatOpen, onSave, saving, onExport, onSettings, onShare }: CanvasHeaderProps) {
   const metadata = project.metadata as any;
   const progress = metadata?.progressPercentage || 0;
 
@@ -71,6 +72,16 @@ export default function CanvasHeader({ project, onBack, onToggleChat, chatOpen, 
             title={chatOpen ? 'Close AI Chat' : 'Open AI Chat'}
           >
             🤖 AI Agents
+          </button>
+
+          <button
+            onClick={onShare}
+            className="px-4 py-2 rounded-lg bg-white/50 hover:bg-white/70 text-gray-700 transition-colors flex items-center space-x-1"
+            title="Invite Collaborators (Coming Soon)"
+          >
+            <span>👥</span>
+            <span>Share</span>
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 ml-1">Soon</span>
           </button>
 
           <button

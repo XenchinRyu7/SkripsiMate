@@ -12,6 +12,7 @@ import CanvasHeader from '@/components/canvas/CanvasHeader';
 import GenerateRoadmapForm from '@/components/canvas/GenerateRoadmapForm';
 import ExportModal from '@/components/canvas/ExportModal';
 import SettingsModal from '@/components/canvas/SettingsModal';
+import { ShareModal } from '@/components/canvas/ShareModal';
 
 export default function ProjectCanvasPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function ProjectCanvasPage() {
   const [saving, setSaving] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -150,6 +152,7 @@ export default function ProjectCanvasPage() {
         chatOpen={chatOpen}
         onSave={handleSave}
         saving={saving}
+        onShare={() => setShowShareModal(true)}
         onExport={() => setShowExportModal(true)}
         onSettings={() => setShowSettingsModal(true)}
       />
@@ -201,6 +204,14 @@ export default function ProjectCanvasPage() {
       {/* Settings Modal */}
       {showSettingsModal && (
         <SettingsModal onClose={() => setShowSettingsModal(false)} />
+      )}
+
+      {/* Share/Collaboration Modal */}
+      {showShareModal && project && (
+        <ShareModal
+          project={project}
+          onClose={() => setShowShareModal(false)}
+        />
       )}
     </div>
   );
