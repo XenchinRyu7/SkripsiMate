@@ -17,6 +17,7 @@ interface Node {
 
 interface RAGContext {
   relevantNodes: Node[];
+  allPhases: Node[];  // All project phases for structure overview
   projectSummary: string;
   totalNodes: number;
   completedNodes: number;
@@ -171,10 +172,19 @@ export async function buildRAGContext(
   // Get ONLY relevant nodes (RAG magic here!)
   const relevantNodes = await findRelevantNodes(userQuery, projectId, 5);
 
+  // ALSO get ALL phases for structure overview (so AI can always find phase IDs)
+  const { data: phases } = await supabaseAdmin
+    .from('nodes')
+    .select('id, title, type, status, description')
+    .eq('project_id', projectId)
+    .eq('type', 'phase')
+    .order('order_index', { ascending: true });
+
   const metadata = project?.metadata as any;
 
   return {
     relevantNodes,
+    allPhases: phases || [],
     projectSummary: `${project?.title} (${project?.jurusan}, ${project?.timeline})`,
     totalNodes,
     completedNodes,
@@ -189,8 +199,22 @@ export function formatRAGContext(context: RAGContext): string {
   let formatted = `**Project:** ${context.projectSummary}\n`;
   formatted += `**Progress:** ${context.completedNodes}/${context.totalNodes} completed\n`;
 
+  // ALWAYS show all phases for structure overview (AI needs phase IDs!)
+  if (context.allPhases.length > 0) {
+    formatted += `\n**Project Structure (All Phases):**\n`;
+    context.allPhases.forEach((phase, i) => {
+      const status =
+        phase.status === 'completed'
+          ? '✅'
+          : phase.status === 'in_progress'
+          ? '🔄'
+          : '⏸️';
+      formatted += `${i + 1}. ${status} Fase ${i + 1}: "${phase.title}" (ID: ${phase.id})\n`;
+    });
+  }
+
   if (context.relevantNodes.length > 0) {
-    formatted += `\n**Relevant Tasks:**\n`;
+    formatted += `\n**Most Relevant Tasks:**\n`;
     context.relevantNodes.forEach((node, i) => {
       const status =
         node.status === 'completed'
@@ -198,7 +222,11 @@ export function formatRAGContext(context: RAGContext): string {
           : node.status === 'in_progress'
           ? '🔄'
           : '⏸️';
-      formatted += `${i + 1}. ${status} ${node.title}\n`;
+      // Include node ID and type for AI to use in actions
+      formatted += `${i + 1}. ${status} [${node.type.toUpperCase()}] "${node.title}" (ID: ${node.id})\n`;
+      if (node.description) {
+        formatted += `   Description: ${node.description.substring(0, 100)}${node.description.length > 100 ? '...' : ''}\n`;
+      }
     });
   }
 

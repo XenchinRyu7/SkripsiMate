@@ -375,7 +375,15 @@ CRITICAL Instructions:
   * "analyze" / "analisis" / "apa pendapat" → use chat_only
 
 - DEFAULT TO ACTION! If there's ANY hint of wanting to create/modify → DO IT!
-- For "detailkan X" or "pecah X" → ALWAYS use break_down_task with the node_id
+
+HOW TO USE break_down_task:
+1. User mentions a phase/step/task by name (e.g., "fase 2", "Pelatihan Model", "step 3")
+2. Look in "Project Structure" or "Most Relevant Tasks" sections above
+3. Find the node with matching title
+4. Extract the UUID from "(ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"
+5. Use that EXACT UUID as node_id parameter
+6. Example: If you see "Fase 2: Pelatihan Model (ID: abc-123-def)", use "abc-123-def" as node_id
+
 - Always respond in valid JSON format
 - Be concise and helpful
 - DO NOT use markdown formatting in your message`
