@@ -1,6 +1,7 @@
 // API Route: Update and Delete Node Details
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export async function DELETE(
   request: NextRequest,
@@ -46,7 +47,7 @@ export async function DELETE(
       .eq('parent_id', nodeId);
 
     if (childrenError) {
-      console.error('Error fetching children:', childrenError);
+      logger.error('Error fetching children:', childrenError);
     }
 
     // Delete all children first (recursive cascade)
@@ -76,21 +77,21 @@ export async function DELETE(
     }
 
     // Delete the node itself
-    console.log('🗑️ Deleting node:', nodeId);
+    logger.debug('🗑️', 'Deleting node:', nodeId);
     const { data: deleteData, error: deleteError, count } = await supabaseAdmin
       .from('nodes')
       .delete()
       .eq('id', nodeId)
       .select();
 
-    console.log('📊 Delete result:', { 
+    logger.debug('📊', 'Delete result:', { 
       deleted: deleteData?.length || 0, 
       count, 
       error: deleteError 
     });
 
     if (deleteError) {
-      console.error('❌ Delete error:', deleteError);
+      logger.error('❌ Delete error:', deleteError);
       return NextResponse.json(
         { 
           error: 'Failed to delete node',
@@ -102,9 +103,9 @@ export async function DELETE(
     }
 
     if (!deleteData || deleteData.length === 0) {
-      console.error('⚠️ No rows deleted! Node might not exist or already deleted');
+      logger.warn('⚠️ No rows deleted! Node might not exist or already deleted');
     } else {
-      console.log('✅ Successfully deleted node from DB');
+      logger.success('Successfully deleted node from DB');
     }
 
     // Remove edges connected to this node from project metadata
@@ -153,7 +154,7 @@ export async function DELETE(
       .order('order_index', { ascending: true });
 
     if (refetchError) {
-      console.error('Refetch error:', refetchError);
+      logger.error('Refetch error:', refetchError);
       return NextResponse.json(
         { error: 'Failed to fetch remaining nodes' },
         { status: 500 }
@@ -166,7 +167,7 @@ export async function DELETE(
       message: 'Node and its children deleted successfully',
     });
   } catch (error: any) {
-    console.error('Error deleting node:', error);
+    logger.error('Error deleting node:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }
@@ -221,7 +222,7 @@ export async function PATCH(
       .eq('id', nodeId);
 
     if (updateError) {
-      console.error('Update error:', updateError);
+      logger.error('Update error:', updateError);
       return NextResponse.json(
         { error: 'Failed to update node' },
         { status: 500 }
@@ -236,7 +237,7 @@ export async function PATCH(
       .order('order_index', { ascending: true });
 
     if (fetchError) {
-      console.error('Fetch error:', fetchError);
+      logger.error('Fetch error:', fetchError);
       return NextResponse.json(
         { error: 'Failed to fetch updated nodes' },
         { status: 500 }
@@ -252,7 +253,7 @@ export async function PATCH(
       message: 'Node updated successfully',
     });
   } catch (error: any) {
-    console.error('Error updating node:', error);
+    logger.error('Error updating node:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

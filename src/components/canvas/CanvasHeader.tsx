@@ -2,7 +2,6 @@
 'use client';
 
 import { Project } from '@/lib/supabase';
-import { useState, useEffect } from 'react';
 import { FolderOpen, Bot, Users, Download, Settings, Save, Loader2, ArrowLeft } from "lucide-react";
 import { useToast } from '@/components/ui/Toast';
 
@@ -22,12 +21,6 @@ export default function CanvasHeader({ project, onBack, onToggleChat, chatOpen, 
   const toast = useToast();
   const metadata = project.metadata as any;
   const progress = metadata?.progressPercentage || 0;
-
-  // Debug: Log when progress changes
-  useEffect(() => {
-    console.log('🎯 CanvasHeader: Progress updated to:', progress);
-    console.log('📋 CanvasHeader: Project metadata:', metadata);
-  }, [progress, metadata]);
 
   return (
     <header className="glass-panel border-b border-white/20 flex-shrink-0">

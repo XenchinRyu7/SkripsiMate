@@ -1,6 +1,7 @@
 // API Route: Recalculate Project Progress (for existing projects)
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export async function POST(
   request: NextRequest,
@@ -17,26 +18,26 @@ export async function POST(
     }
 
     // Get all nodes for this project
-    console.log('🔍 Fetching nodes for project:', projectId);
+    logger.debug('🔍', 'Fetching nodes for project:', projectId);
     const { data: allNodes, error: nodesError } = await supabaseAdmin
       .from('nodes')
       .select('*')
       .eq('project_id', projectId);
 
-    console.log('📦 Fetched nodes count:', allNodes?.length);
-    console.log('📊 Node types:', {
+    logger.debug('📦', 'Fetched nodes count:', allNodes?.length);
+    logger.debug('📊', 'Node types:', {
       phases: allNodes?.filter(n => n.type === 'phase').length,
       steps: allNodes?.filter(n => n.type === 'step').length,
       substeps: allNodes?.filter(n => n.type === 'substep').length,
     });
 
     if (nodesError) {
-      console.error('❌ Error fetching nodes:', nodesError);
+      logger.error('❌ Error fetching nodes:', nodesError);
       throw nodesError;
     }
 
     if (!allNodes || allNodes.length === 0) {
-      console.warn('⚠️ No nodes found for project');
+      logger.warn('⚠️ No nodes found for project');
       return NextResponse.json(
         { error: 'No nodes found for this project' },
         { status: 404 }
@@ -71,15 +72,15 @@ export async function POST(
     const totalNodes = allNodes.length; // Count ALL nodes including phases
     const completedNodes = allNodes.filter(n => n.status === 'completed').length;
     
-    console.log('📊 Calculating progress:');
-    console.log('  - Total nodes (ALL types):', totalNodes);
-    console.log('  - Completed nodes:', completedNodes);
+    logger.debug('📊', 'Calculating progress:');
+    logger.info('  - Total nodes (ALL types):', totalNodes);
+    logger.info('  - Completed nodes:', completedNodes);
     
     const progressPercentage = totalNodes > 0 
       ? Math.round((completedNodes / totalNodes) * 100)
       : 0;
     
-    console.log('  - Progress percentage:', progressPercentage + '%');
+    logger.info('  - Progress percentage:', progressPercentage + '%');
 
     // Find current phase
     const sortedPhases = phases.sort((a, b) => {
@@ -145,7 +146,7 @@ export async function POST(
       message: 'Project progress recalculated successfully',
     });
   } catch (error: any) {
-    console.error('Error recalculating progress:', error);
+    logger.error('Error recalculating progress:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

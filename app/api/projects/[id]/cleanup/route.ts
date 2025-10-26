@@ -1,6 +1,7 @@
 // API Route: Cleanup Orphaned/Ghost Nodes
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export async function POST(
   request: NextRequest,
@@ -18,8 +19,8 @@ export async function POST(
       );
     }
 
-    console.log('🧹 Starting cleanup for project:', projectId);
-    console.log('🎯 Target node IDs:', nodeIds || 'ALL orphaned nodes');
+    logger.debug('🧹', 'Starting cleanup for project:', projectId);
+    logger.debug('🎯', 'Target node IDs:', nodeIds || 'ALL orphaned nodes');
 
     // Get all nodes for this project BEFORE cleanup
     const { data: beforeNodes } = await supabaseAdmin
@@ -27,13 +28,13 @@ export async function POST(
       .select('id, title, type')
       .eq('project_id', projectId);
 
-    console.log('📦 Nodes BEFORE cleanup:', beforeNodes?.length);
+    logger.debug('📦', 'Nodes BEFORE cleanup:', beforeNodes?.length);
 
     let deletedCount = 0;
 
     if (nodeIds && Array.isArray(nodeIds) && nodeIds.length > 0) {
       // Delete specific nodes
-      console.log('🗑️ Deleting specific nodes:', nodeIds);
+      logger.debug('🗑️', 'Deleting specific nodes:', nodeIds);
       
       const { data: deletedNodes, error: deleteError } = await supabaseAdmin
         .from('nodes')
@@ -43,15 +44,15 @@ export async function POST(
         .select();
 
       if (deleteError) {
-        console.error('❌ Delete error:', deleteError);
+        logger.error('❌ Delete error:', deleteError);
         throw deleteError;
       }
 
       deletedCount = deletedNodes?.length || 0;
-      console.log('✅ Deleted nodes:', deletedCount);
+      logger.success('Deleted nodes:', deletedCount);
     } else {
       // Find and delete orphaned nodes (nodes with missing parents)
-      console.log('🔍 Finding orphaned nodes...');
+      logger.debug('🔍', 'Finding orphaned nodes...');
       
       const { data: allNodes } = await supabaseAdmin
         .from('nodes')
@@ -73,7 +74,7 @@ export async function POST(
       for (const node of allNodes) {
         if (node.parent_id && !nodeMap.has(node.parent_id)) {
           orphanedNodes.push(node.id);
-          console.log('🚫 Orphaned node found:', node.title, '(parent missing)');
+          logger.debug('🚫', 'Orphaned node found:', node.title, '(parent missing)');
         }
       }
 
@@ -85,12 +86,12 @@ export async function POST(
           .select();
 
         if (deleteError) {
-          console.error('❌ Failed to delete orphaned nodes:', deleteError);
+          logger.error('❌ Failed to delete orphaned nodes:', deleteError);
           throw deleteError;
         }
 
         deletedCount = deletedNodes?.length || 0;
-        console.log('✅ Deleted orphaned nodes:', deletedCount);
+        logger.success('Deleted orphaned nodes:', deletedCount);
       }
     }
 
@@ -101,7 +102,7 @@ export async function POST(
       .eq('project_id', projectId)
       .order('order_index', { ascending: true });
 
-    console.log('📦 Nodes AFTER cleanup:', afterNodes?.length);
+    logger.debug('📦', 'Nodes AFTER cleanup:', afterNodes?.length);
 
     // Recalculate progress (count ALL nodes including phases)
     const totalWork = afterNodes?.length || 0;
@@ -130,8 +131,8 @@ export async function POST(
       })
       .eq('id', projectId);
 
-    console.log('✅ Cleanup complete!');
-    console.log('📊 Summary:', {
+    logger.success('Cleanup complete!');
+    logger.debug('📊', 'Summary:', {
       before: beforeNodes?.length,
       after: afterNodes?.length,
       deleted: deletedCount,
@@ -152,7 +153,7 @@ export async function POST(
       nodes: afterNodes,
     });
   } catch (error: any) {
-    console.error('❌ Cleanup error:', error);
+    logger.error('❌ Cleanup error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }
