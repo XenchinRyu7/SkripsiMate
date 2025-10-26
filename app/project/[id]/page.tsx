@@ -278,6 +278,10 @@ export default function ProjectCanvasPage() {
               projectId={projectId}
               project={project}
               onClose={() => setChatOpen(false)}
+              onNodesCreated={() => {
+                // Refresh project data when AI creates nodes
+                fetchProject();
+              }}
             />
           </div>
         )}

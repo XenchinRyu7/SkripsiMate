@@ -1,12 +1,175 @@
-// API Route: AI Agents Chat
+// API Route: AI Agents Chat with Actions
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateContent } from '@/lib/gemini';
 import { buildRAGContext, formatRAGContext } from '@/lib/rag';
+import { logger } from '@/lib/logger';
+import { 
+  AI_AGENT_SYSTEM_PROMPT, 
+  parseAIActionResponse,
+  AIActionType,
+  CreateNodeParams,
+  UpdateNodeParams,
+  BreakDownTaskParams
+} from '@/lib/ai-actions';
+import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * Execute AI action (create nodes, update nodes, etc.)
+ */
+async function executeAction(
+  projectId: string,
+  actionType: AIActionType,
+  params: any
+): Promise<{ created_nodes?: any[]; updated_nodes?: any[]; analysis?: string } | null> {
+  if (!supabaseAdmin) return null;
+
+  switch (actionType) {
+    case 'create_node': {
+      const nodeParams = params as CreateNodeParams;
+      
+      // Get max order_index
+      const { data: existingNodes } = await supabaseAdmin
+        .from('nodes')
+        .select('order_index')
+        .eq('project_id', projectId)
+        .order('order_index', { ascending: false })
+        .limit(1);
+      
+      const maxOrder = existingNodes?.[0]?.order_index || 0;
+
+      // Calculate position (stack vertically)
+      const yPos = (maxOrder + 1) * 200;
+
+      const newNode = {
+        id: uuidv4(),
+        project_id: projectId,
+        title: nodeParams.title,
+        description: nodeParams.description || '',
+        type: nodeParams.type,
+        parent_id: nodeParams.parent_id || null,
+        position_x: 100,
+        position_y: yPos,
+        status: 'pending' as const,
+        priority: nodeParams.priority || 'medium',
+        estimated_time: nodeParams.estimated_time || '1 week',
+        order_index: maxOrder + 1,
+        metadata: {},
+      };
+
+      const { data, error } = await supabaseAdmin
+        .from('nodes')
+        .insert([newNode])
+        .select();
+
+      if (error) {
+        logger.error('Failed to create node:', error);
+        return null;
+      }
+
+      logger.success('Created node:', newNode.title);
+      return { created_nodes: data };
+    }
+
+    case 'update_node': {
+      const updateParams = params as UpdateNodeParams;
+      
+      const { data, error } = await supabaseAdmin
+        .from('nodes')
+        .update(updateParams.updates)
+        .eq('id', updateParams.node_id)
+        .eq('project_id', projectId)
+        .select();
+
+      if (error) {
+        logger.error('Failed to update node:', error);
+        return null;
+      }
+
+      logger.success('Updated node:', updateParams.node_id);
+      return { updated_nodes: data };
+    }
+
+    case 'break_down_task': {
+      const breakDownParams = params as BreakDownTaskParams;
+      
+      // Get parent node
+      const { data: parentNode } = await supabaseAdmin
+        .from('nodes')
+        .select('*')
+        .eq('id', breakDownParams.node_id)
+        .single();
+
+      if (!parentNode) {
+        logger.error('Parent node not found');
+        return null;
+      }
+
+      // Generate substeps using AI
+      const prompt = `Break down this task into ${breakDownParams.num_substeps || 3} concrete, actionable substeps:
+
+**Task:** ${parentNode.title}
+**Description:** ${parentNode.description}
+
+Return ONLY a JSON array of substeps:
+[
+  { "title": "Substep 1", "description": "What to do", "estimated_time": "2 days" },
+  { "title": "Substep 2", "description": "What to do", "estimated_time": "3 days" }
+]`;
+
+      const aiResponse = await generateContent(prompt);
+      const substepsMatch = aiResponse.match(/\[[\s\S]*\]/);
+      
+      if (!substepsMatch) {
+        logger.error('Failed to parse substeps from AI');
+        return null;
+      }
+
+      const substeps = JSON.parse(substepsMatch[0]);
+
+      // Create substeps
+      const createdSubsteps = [];
+      for (let i = 0; i < substeps.length; i++) {
+        const substep = substeps[i];
+        const newSubstep = {
+          id: uuidv4(),
+          project_id: projectId,
+          title: substep.title,
+          description: substep.description || '',
+          type: 'substep' as const,
+          parent_id: parentNode.id,
+          position_x: parentNode.position_x + 300,
+          position_y: parentNode.position_y + (i * 150),
+          status: 'pending' as const,
+          priority: 'medium' as const,
+          estimated_time: substep.estimated_time || '1 day',
+          order_index: i,
+          metadata: {},
+        };
+
+        const { data, error } = await supabaseAdmin
+          .from('nodes')
+          .insert([newSubstep])
+          .select();
+
+        if (!error && data) {
+          createdSubsteps.push(...data);
+        }
+      }
+
+      logger.success('Created', createdSubsteps.length, 'substeps');
+      return { created_nodes: createdSubsteps };
+    }
+
+    default:
+      logger.warn('Unknown action type:', actionType);
+      return null;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { projectId, message, context } = await request.json();
+    const { projectId, message, context, mode = 'ask' } = await request.json();
 
     if (!projectId || !message) {
       return NextResponse.json(
@@ -14,6 +177,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    logger.info(`🤖 ${mode === 'agents' ? 'Agents' : 'Ask'} Mode:`, message.substring(0, 50) + '...');
 
     if (!supabaseAdmin) {
       return NextResponse.json(
@@ -30,32 +195,85 @@ export async function POST(request: NextRequest) {
       .single();
 
     // ========================================
-    // RAG: Lightweight context with vector search
-    // Only retrieve RELEVANT nodes (saves 90% tokens!)
+    // RAG: Retrieve relevant context
     // ========================================
     
     const ragContext = await buildRAGContext(message, projectId);
     const contextStr = formatRAGContext(ragContext);
 
-    // Build optimized prompt (SHORT = less tokens = cheaper!)
-    const prompt = `You're a helpful AI thesis planning agent. Be brief, specific, actionable.
+    // Build prompt based on mode
+    const prompt = mode === 'agents' 
+      ? `${AI_AGENT_SYSTEM_PROMPT}
 
+**Mode:** AGENTS MODE (You CAN execute actions!)
+
+**Project Context:**
 ${contextStr}
 
-**User:** ${message}
+**User Message:** ${message}
 
-**Task:** Give concise, helpful advice (2-3 sentences). Be encouraging.`;
+**Instructions:** 
+- If user wants you to CREATE, ADD, UPDATE nodes → use appropriate action
+- If user asks QUESTIONS or wants ADVICE → use chat_only
+- Always respond in valid JSON format
+- Be concise and helpful`
+      : `You're a helpful AI thesis planning advisor. Answer questions, give advice, analyze progress.
+
+**Important:** You are in ASK MODE - do NOT create, update, or modify nodes. Only provide advice!
+
+**Project Context:**
+${contextStr}
+
+**User Question:** ${message}
+
+**Task:** Give concise, helpful advice (2-4 sentences). Be encouraging and insightful.`;
+
+    logger.info('🤖 AI processing message...');
 
     // Generate response with auto-retry + fallback
-    const agentResponse = await generateContent(prompt);
+    const aiRawResponse = await generateContent(prompt);
+    
+    logger.debug('🤖', 'AI raw response:', aiRawResponse);
+
+    // Parse AI response (only for agents mode)
+    let actionResponse = null;
+    let executionResult = null;
+    
+    if (mode === 'agents') {
+      actionResponse = parseAIActionResponse(aiRawResponse);
+      
+      if (!actionResponse) {
+        // Fallback: treat as chat-only
+        return NextResponse.json({
+          success: true,
+          action: { type: 'chat_only', params: {} },
+          message: aiRawResponse,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      // Execute action if needed
+      if (actionResponse.action.type !== 'chat_only') {
+        logger.info('⚡ Executing action:', actionResponse.action.type);
+        executionResult = await executeAction(
+          projectId,
+          actionResponse.action.type,
+          actionResponse.action.params
+        );
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      message: agentResponse,
+      action: actionResponse?.action || { type: 'chat_only', params: {} },
+      message: actionResponse?.message || aiRawResponse,
+      created_nodes: executionResult?.created_nodes,
+      updated_nodes: executionResult?.updated_nodes,
+      analysis: executionResult?.analysis,
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    console.error('Error in AI chat:', error);
+    logger.error('Error in AI chat:', error);
     
     // User-friendly error message
     let userMessage = 'Sorry, AI is temporarily busy. Please try again in a moment.';
