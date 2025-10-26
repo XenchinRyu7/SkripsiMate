@@ -1,19 +1,74 @@
 // Google Gemini AI Configuration & Client Setup
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 
-// Environment variables
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-pro-latest';
+// ============================================
+// AUTO-FAILOVER API KEY SYSTEM
+// ============================================
+// Load all available API keys from environment
+const API_KEYS = [
+  process.env.GEMINI_API_KEY,
+  process.env.BACKUP_GEMINI_API_KEY_1,
+  process.env.BACKUP_GEMINI_API_KEY_2,
+].filter(Boolean) as string[];
+
+// Track current active key index
+let currentKeyIndex = 0;
+let failedKeys = new Set<number>(); // Track which keys have failed
+
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp';
 const GEMINI_EMBEDDING_MODEL = process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004';
 
-// Initialize Gemini AI
-let genAI: GoogleGenerativeAI | null = null;
-let generationModel: GenerativeModel | null = null;
-let embeddingModel: GenerativeModel | null = null;
+/**
+ * Get currently active API key
+ */
+function getCurrentApiKey(): string {
+  if (API_KEYS.length === 0) {
+    throw new Error('No Gemini API keys configured');
+  }
+  
+  // Find next working key
+  while (failedKeys.has(currentKeyIndex) && failedKeys.size < API_KEYS.length) {
+    currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
+  }
+  
+  return API_KEYS[currentKeyIndex];
+}
 
-if (GEMINI_API_KEY) {
-  genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-  generationModel = genAI.getGenerativeModel({ 
+/**
+ * Switch to next API key (on quota/rate limit error)
+ */
+function rotateToNextKey(): boolean {
+  console.warn(`⚠️ API Key ${currentKeyIndex + 1} quota exhausted! Rotating...`);
+  
+  failedKeys.add(currentKeyIndex);
+  
+  // If all keys failed, reset and try again
+  if (failedKeys.size >= API_KEYS.length) {
+    console.warn('🔄 All keys exhausted! Resetting rotation (keys may have recovered)...');
+    failedKeys.clear();
+    currentKeyIndex = 0;
+    return false; // All keys tried
+  }
+  
+  // Move to next key
+  currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
+  console.log(`✅ Switched to API Key ${currentKeyIndex + 1}/${API_KEYS.length}`);
+  
+  return true;
+}
+
+/**
+ * Initialize Gemini client with current key
+ */
+function initializeGeminiClient(): {
+  genAI: GoogleGenerativeAI;
+  generationModel: GenerativeModel;
+  embeddingModel: GenerativeModel;
+} {
+  const apiKey = getCurrentApiKey();
+  const genAI = new GoogleGenerativeAI(apiKey);
+  
+  const generationModel = genAI.getGenerativeModel({ 
     model: GEMINI_MODEL,
     generationConfig: {
       temperature: 0.7,
@@ -22,8 +77,16 @@ if (GEMINI_API_KEY) {
       maxOutputTokens: 8192,
     },
   });
-  embeddingModel = genAI.getGenerativeModel({ model: GEMINI_EMBEDDING_MODEL });
+  
+  const embeddingModel = genAI.getGenerativeModel({ model: GEMINI_EMBEDDING_MODEL });
+  
+  return { genAI, generationModel, embeddingModel };
 }
+
+// Initialize with first available key
+let { genAI, generationModel, embeddingModel } = API_KEYS.length > 0 
+  ? initializeGeminiClient() 
+  : { genAI: null, generationModel: null, embeddingModel: null };
 
 // ============================================
 // GENERATION FUNCTIONS
@@ -31,9 +94,9 @@ if (GEMINI_API_KEY) {
 
 /**
  * Generate content with Gemini Pro
- * Auto-retry with exponential backoff + fallback to Flash
+ * Auto-retry with API key rotation on quota errors
  */
-export const generateContent = async (prompt: string, retries = 2): Promise<string> => {
+export const generateContent = async (prompt: string, retries = 3): Promise<string> => {
   if (!generationModel) {
     throw new Error('Gemini API is not configured');
   }
@@ -45,11 +108,27 @@ export const generateContent = async (prompt: string, retries = 2): Promise<stri
       return response.text();
     } catch (error: any) {
       const is503 = error.message?.includes('503') || error.message?.includes('overloaded');
-      const is429 = error.message?.includes('429') || error.message?.includes('quota');
+      const is429 = error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED');
+      
+      // If quota error, try rotating to next API key
+      if (is429 && API_KEYS.length > 1) {
+        const rotated = rotateToNextKey();
+        
+        if (rotated) {
+          // Reinitialize client with new key
+          const newClient = initializeGeminiClient();
+          genAI = newClient.genAI;
+          generationModel = newClient.generationModel;
+          embeddingModel = newClient.embeddingModel;
+          
+          console.log('🔄 Retrying with new API key...');
+          continue; // Retry immediately with new key
+        }
+      }
       
       // Last attempt or not a retryable error
       if (attempt === retries || (!is503 && !is429)) {
-        console.error('Error generating content:', error);
+        console.error('❌ Error generating content:', error.message);
         
         // Try Flash model as last resort
         if ((is503 || is429) && flashModel) {
@@ -66,7 +145,7 @@ export const generateContent = async (prompt: string, retries = 2): Promise<stri
       }
       
       // Wait before retry (exponential backoff)
-      const waitTime = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+      const waitTime = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s, 8s
       console.warn(`⏳ Retry ${attempt + 1}/${retries} after ${waitTime}ms...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
@@ -129,20 +208,43 @@ export const generateContentStream = async (
 
 /**
  * Generate embedding for text
- * Returns 1536-dimensional vector
+ * Returns 768-dimensional vector (text-embedding-004)
+ * Auto-rotates API keys on quota errors
  */
-export const embedText = async (text: string): Promise<number[]> => {
+export const embedText = async (text: string, retries = 2): Promise<number[]> => {
   if (!embeddingModel) {
     throw new Error('Gemini Embedding API is not configured');
   }
 
-  try {
-    const result = await embeddingModel.embedContent(text);
-    return result.embedding.values;
-  } catch (error: any) {
-    console.error('Error generating embedding:', error);
-    throw new Error(`Gemini embedding failed: ${error.message}`);
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const result = await embeddingModel.embedContent(text);
+      return result.embedding.values;
+    } catch (error: any) {
+      const is429 = error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED');
+      
+      // If quota error, try rotating to next API key
+      if (is429 && API_KEYS.length > 1 && attempt < retries) {
+        const rotated = rotateToNextKey();
+        
+        if (rotated) {
+          // Reinitialize client with new key
+          const newClient = initializeGeminiClient();
+          genAI = newClient.genAI;
+          generationModel = newClient.generationModel;
+          embeddingModel = newClient.embeddingModel;
+          
+          console.log('🔄 Retrying embedding with new API key...');
+          continue; // Retry immediately with new key
+        }
+      }
+      
+      console.error('❌ Error generating embedding:', error.message);
+      throw new Error(`Gemini embedding failed: ${error.message}`);
+    }
   }
+  
+  throw new Error('Max embedding retries exceeded');
 };
 
 /**
