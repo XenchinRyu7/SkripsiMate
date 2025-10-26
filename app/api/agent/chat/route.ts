@@ -359,16 +359,23 @@ export async function POST(request: NextRequest) {
     const prompt = mode === 'agents' 
       ? `${AI_AGENT_SYSTEM_PROMPT}
 
-MODE: AGENTS MODE (You CAN execute actions!)
+MODE: AGENTS MODE (You CAN and SHOULD execute actions!)
 
 Project Context:
 ${contextStr}
 
 User Message: ${message}
 
-Instructions: 
-- If user wants you to CREATE, ADD, UPDATE nodes → use appropriate action
-- If user asks QUESTIONS or wants ADVICE → use chat_only
+CRITICAL Instructions: 
+- User said: "${message}"
+- Keywords that REQUIRE ACTION:
+  * "buatkan" / "create" / "add" / "tambahkan" → use create_node or create_multiple_nodes
+  * "break down" / "pecah" / "detailkan" / "substep" → use break_down_task
+  * "update" / "ubah" / "edit" → use update_node
+  * "analyze" / "analisis" / "apa pendapat" → use chat_only
+
+- DEFAULT TO ACTION! If there's ANY hint of wanting to create/modify → DO IT!
+- For "detailkan X" or "pecah X" → ALWAYS use break_down_task with the node_id
 - Always respond in valid JSON format
 - Be concise and helpful
 - DO NOT use markdown formatting in your message`

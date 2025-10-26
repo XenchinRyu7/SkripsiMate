@@ -129,10 +129,10 @@ Try: "Add a step for data preprocessing" or "Break down the Literature Review in
     }
   };
 
-  // Update system message when mode changes
+  // Update system message when mode changes (keep chat history!)
   useEffect(() => {
-    setMessages([{
-      id: '1',
+    const systemMessage: Message = {
+      id: 'system-' + mode,
       role: 'system',
       content: mode === 'ask' 
         ? `💬 Ask Mode - I'm here to answer questions and give advice!
@@ -156,9 +156,16 @@ I can help you:
 
 Just tell me what you want, and I'll do it!
 
-Try: "Add a step for data preprocessing" or "Break down the Literature Review into 4 subtasks"`,
+Try: "Add a step for data preprocessing" or "Break down step X into 3 substeps"`,
       timestamp: new Date(),
-    }]);
+    };
+
+    // Keep existing messages, just add mode switch notification
+    setMessages(prev => {
+      // Remove old system messages, keep user/agent chat
+      const chatMessages = prev.filter(m => m.role !== 'system');
+      return [systemMessage, ...chatMessages];
+    });
   }, [mode]);
 
   const handleSend = async () => {
