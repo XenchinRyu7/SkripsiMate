@@ -3,6 +3,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Project } from '@/lib/supabase';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { clientLogger } from '@/lib/logger';
 
 interface Message {
   id: string;
@@ -19,6 +21,7 @@ interface AIChatPanelProps {
 }
 
 export default function AIChatPanel({ projectId, project, onClose, onNodesCreated }: AIChatPanelProps) {
+  const { user } = useAuthContext();
   const [mode, setMode] = useState<'ask' | 'agents'>('ask');
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -52,12 +55,66 @@ Try: "Add a step for data preprocessing" or "Break down the Literature Review in
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Load chat history on mount
+  useEffect(() => {
+    const loadHistory = async () => {
+      if (!user || !projectId) return;
+      
+      try {
+        const response = await fetch(`/api/chat/${projectId}?userId=${user.uid}&limit=50`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.messages && data.messages.length > 0) {
+            const loadedMessages = data.messages.map((msg: any) => ({
+              id: msg.id,
+              role: msg.role,
+              content: msg.content,
+              timestamp: new Date(msg.created_at),
+            }));
+            setMessages(loadedMessages);
+            clientLogger.info('Loaded', loadedMessages.length, 'chat messages');
+          }
+        }
+      } catch (error) {
+        clientLogger.error('Failed to load chat history:', error);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+
+    loadHistory();
+  }, [projectId, user]);
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Save message to database
+  const saveMessage = async (message: Message, actionData?: any) => {
+    if (!user) return;
+
+    try {
+      await fetch(`/api/chat/${projectId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          role: message.role,
+          content: message.content,
+          mode: mode,
+          action_type: actionData?.action?.type,
+          created_nodes: actionData?.created_nodes?.length || 0,
+          updated_nodes: actionData?.updated_nodes?.length || 0,
+        }),
+      });
+    } catch (error) {
+      clientLogger.error('Failed to save message:', error);
+    }
+  };
 
   // Update system message when mode changes
   useEffect(() => {
@@ -104,6 +161,9 @@ Try: "Add a step for data preprocessing" or "Break down the Literature Review in
     setMessages([...messages, userMessage]);
     setInput('');
     setLoading(true);
+
+    // Save user message
+    saveMessage(userMessage);
 
     try {
       // Call AI Agents API with mode
@@ -158,6 +218,9 @@ Try: "Add a step for data preprocessing" or "Break down the Literature Review in
           timestamp: new Date(),
         };
         setMessages(prev => [...prev, agentMessage]);
+        
+        // Save agent message with action data
+        saveMessage(agentMessage, data);
       } else if (data.userMessage) {
         // User-friendly error from server
         const errorMessage: Message = {

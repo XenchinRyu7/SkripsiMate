@@ -10,7 +10,8 @@ import {
   AIActionType,
   CreateNodeParams,
   UpdateNodeParams,
-  BreakDownTaskParams
+  BreakDownTaskParams,
+  CreateMultipleNodesParams
 } from '@/lib/ai-actions';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -69,6 +70,94 @@ async function executeAction(
 
       logger.success('Created node:', newNode.title);
       return { created_nodes: data };
+    }
+
+    case 'create_multiple_nodes': {
+      const multiParams = params as CreateMultipleNodesParams;
+      
+      // Get max order_index
+      const { data: existingNodes } = await supabaseAdmin
+        .from('nodes')
+        .select('order_index')
+        .eq('project_id', projectId)
+        .order('order_index', { ascending: false })
+        .limit(1);
+      
+      let maxOrder = existingNodes?.[0]?.order_index || 0;
+      const createdNodes = [];
+
+      // Create phases and their children
+      for (const nodeSpec of multiParams.nodes) {
+        const phaseId = uuidv4();
+        const yPos = (maxOrder + 1) * 200;
+
+        // Create parent node (phase or step)
+        const parentNode = {
+          id: phaseId,
+          project_id: projectId,
+          title: nodeSpec.title,
+          description: nodeSpec.description || '',
+          type: nodeSpec.type,
+          parent_id: null,
+          position_x: 100,
+          position_y: yPos,
+          status: 'pending' as const,
+          priority: nodeSpec.priority || 'medium',
+          estimated_time: nodeSpec.estimated_time || '1 week',
+          order_index: maxOrder + 1,
+          metadata: {},
+        };
+
+        const { data: parentData, error: parentError } = await supabaseAdmin
+          .from('nodes')
+          .insert([parentNode])
+          .select();
+
+        if (parentError) {
+          logger.error('Failed to create parent node:', parentError);
+          continue;
+        }
+
+        if (parentData) {
+          createdNodes.push(...parentData);
+          maxOrder++;
+        }
+
+        // Create children if any
+        if (nodeSpec.children && nodeSpec.children.length > 0) {
+          for (let i = 0; i < nodeSpec.children.length; i++) {
+            const child = nodeSpec.children[i];
+            const childNode = {
+              id: uuidv4(),
+              project_id: projectId,
+              title: child.title,
+              description: child.description || '',
+              type: child.type,
+              parent_id: phaseId,
+              position_x: 500,
+              position_y: yPos + (i * 150),
+              status: 'pending' as const,
+              priority: child.priority || 'medium',
+              estimated_time: child.estimated_time || '1 week',
+              order_index: maxOrder + 1,
+              metadata: {},
+            };
+
+            const { data: childData, error: childError } = await supabaseAdmin
+              .from('nodes')
+              .insert([childNode])
+              .select();
+
+            if (!childError && childData) {
+              createdNodes.push(...childData);
+              maxOrder++;
+            }
+          }
+        }
+      }
+
+      logger.success('Created', createdNodes.length, 'nodes');
+      return { created_nodes: createdNodes };
     }
 
     case 'update_node': {

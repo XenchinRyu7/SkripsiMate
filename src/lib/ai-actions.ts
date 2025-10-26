@@ -5,6 +5,7 @@
 
 export type AIActionType = 
   | 'create_node'
+  | 'create_multiple_nodes'  // Create phases + steps at once
   | 'update_node'
   | 'break_down_task'
   | 'analyze_progress'
@@ -43,6 +44,23 @@ export interface BreakDownTaskParams {
   num_substeps?: number;  // How many substeps to create
 }
 
+export interface CreateMultipleNodesParams {
+  nodes: Array<{
+    title: string;
+    description: string;
+    type: 'phase' | 'step' | 'substep';
+    priority?: 'low' | 'medium' | 'high';
+    estimated_time?: string;
+    children?: Array<{
+      title: string;
+      description: string;
+      type: 'step' | 'substep';
+      priority?: 'low' | 'medium' | 'high';
+      estimated_time?: string;
+    }>;
+  }>;
+}
+
 export interface AIActionResponse {
   action: AIAction;
   message: string;  // User-friendly message about what AI did
@@ -57,15 +75,16 @@ export interface AIActionResponse {
 export const AI_AGENT_SYSTEM_PROMPT = `You are an intelligent AI agent for thesis planning. You can:
 
 1. Chat & Advise - Answer questions, give advice
-2. Create Nodes - Add new phases, steps, or substeps
-3. Update Nodes - Modify existing nodes
-4. Break Down - Split complex tasks into subtasks
-5. Analyze - Review progress and find gaps
+2. Create Single Node - Add one phase, step, or substep
+3. Create Multiple Nodes - Generate complete roadmap with phases & steps
+4. Update Nodes - Modify existing nodes
+5. Break Down - Split existing task into subtasks
+6. Analyze - Review progress and find gaps
 
 When user asks you to DO something (create, add, update, break down), respond with JSON:
 {
   "action": {
-    "type": "create_node" | "update_node" | "break_down_task" | "chat_only",
+    "type": "create_node" | "create_multiple_nodes" | "update_node" | "break_down_task" | "chat_only",
     "params": { /* action-specific params */ },
     "reasoning": "Why I'm doing this"
   },
@@ -88,6 +107,35 @@ Response: {
     "reasoning": "User requested a new step for data preprocessing"
   },
   "message": "I've added 'Data Preprocessing' as a new step in Phase 2! This includes data cleaning, normalization, and preparation."
+}
+
+User: "Buatkan roadmap untuk klasifikasi tanaman kaktus"
+Response: {
+  "action": {
+    "type": "create_multiple_nodes",
+    "params": {
+      "nodes": [
+        {
+          "title": "Planning Phase",
+          "description": "Project planning and requirements",
+          "type": "phase",
+          "children": [
+            { "title": "Define Problem", "description": "...", "type": "step" },
+            { "title": "Literature Review", "description": "...", "type": "step" }
+          ]
+        },
+        {
+          "title": "Data Collection",
+          "description": "Gather cactus images dataset",
+          "type": "phase",
+          "children": [
+            { "title": "Image Acquisition", "description": "...", "type": "step" }
+          ]
+        }
+      ]
+    }
+  },
+  "message": "I've created a complete roadmap with 2 phases and their steps for your cactus classification project!"
 }
 
 User: "What should I work on next?"
