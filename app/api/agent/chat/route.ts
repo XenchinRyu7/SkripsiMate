@@ -99,9 +99,9 @@ async function executeAction(
           title: nodeSpec.title,
           description: nodeSpec.description || '',
           type: nodeSpec.type,
+          level: nodeSpec.type === 'phase' ? 0 : 1,
           parent_id: null,
-          position_x: 100,
-          position_y: yPos,
+          position: { x: 100, y: yPos },
           status: 'pending' as const,
           priority: nodeSpec.priority || 'medium',
           order_index: maxOrder + 1,
@@ -136,15 +136,16 @@ async function executeAction(
         if (nodeSpec.children && nodeSpec.children.length > 0) {
           for (let i = 0; i < nodeSpec.children.length; i++) {
             const child = nodeSpec.children[i];
+            const childLevel = child.type === 'step' ? 1 : 2; // step = 1, substep = 2
             const childNode = {
               id: uuidv4(),
               project_id: projectId,
               title: child.title,
               description: child.description || '',
               type: child.type,
+              level: childLevel,
               parent_id: phaseId,
-              position_x: 500,
-              position_y: yPos + (i * 150),
+              position: { x: 500, y: yPos + (i * 150) },
               status: 'pending' as const,
               priority: child.priority || 'medium',
               order_index: maxOrder + 1,
@@ -167,10 +168,52 @@ async function executeAction(
               logger.error('Error details:', childError.details);
               logger.error('Error hint:', childError.hint);
               logger.error('Node data attempted:', JSON.stringify(childNode, null, 2));
-            } else if (childData) {
+            } else if (childData && childData.length > 0) {
               createdNodes.push(...childData);
               maxOrder++;
               logger.debug('✅ Child node created successfully!');
+
+              // Handle nested children (substeps under steps)
+              if (child.children && child.children.length > 0) {
+                const childId = childData[0].id;
+                for (let j = 0; j < child.children.length; j++) {
+                  const grandchild = child.children[j];
+                  const grandchildNode = {
+                    id: uuidv4(),
+                    project_id: projectId,
+                    title: grandchild.title,
+                    description: grandchild.description || '',
+                    type: grandchild.type,
+                    level: 2, // substeps are level 2
+                    parent_id: childId,
+                    position: { x: 900, y: yPos + (i * 150) + (j * 100) },
+                    status: 'pending' as const,
+                    priority: grandchild.priority || 'medium',
+                    order_index: maxOrder + 1,
+                    metadata: {
+                      estimated_time: grandchild.estimated_time || '1 week',
+                    },
+                  };
+
+                  logger.debug('🟣 Attempting to insert grandchild node:', JSON.stringify(grandchildNode, null, 2));
+
+                  const { data: grandchildData, error: grandchildError } = await supabaseAdmin
+                    .from('nodes')
+                    .insert([grandchildNode])
+                    .select();
+
+                  if (grandchildError) {
+                    logger.error('❌ FAILED to create grandchild node!');
+                    logger.error('Error code:', grandchildError.code);
+                    logger.error('Error message:', grandchildError.message);
+                    logger.error('Node data attempted:', JSON.stringify(grandchildNode, null, 2));
+                  } else if (grandchildData) {
+                    createdNodes.push(...grandchildData);
+                    maxOrder++;
+                    logger.debug('✅ Grandchild node created successfully!');
+                  }
+                }
+              }
             }
           }
         }
@@ -238,6 +281,7 @@ Return ONLY a JSON array of substeps:
 
       // Create substeps
       const createdSubsteps = [];
+      const parentPos = parentNode.position || { x: 100, y: 200 };
       for (let i = 0; i < substeps.length; i++) {
         const substep = substeps[i];
         const newSubstep = {
@@ -246,9 +290,9 @@ Return ONLY a JSON array of substeps:
           title: substep.title,
           description: substep.description || '',
           type: 'substep' as const,
+          level: 2, // substeps are level 2
           parent_id: parentNode.id,
-          position_x: parentNode.position_x + 300,
-          position_y: parentNode.position_y + (i * 150),
+          position: { x: parentPos.x + 300, y: parentPos.y + (i * 150) },
           status: 'pending' as const,
           priority: 'medium' as const,
           order_index: i,
