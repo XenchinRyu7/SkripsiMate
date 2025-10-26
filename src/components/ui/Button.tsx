@@ -22,9 +22,9 @@ export const Button: React.FC<ButtonProps> = ({
   
   const variants = {
     primary: 'btn-primary text-white',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
-    glass: 'glass glass-hover text-gray-800',
-    outline: 'border-2 border-primary-500 text-primary-600 hover:bg-primary-50',
+    secondary: 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600',
+    glass: 'glass glass-hover text-gray-800 dark:text-gray-100',
+    outline: 'border-2 border-primary-500 dark:border-primary-400 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20',
   };
   
   const sizes = {

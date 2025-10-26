@@ -16,7 +16,7 @@ export const Card: React.FC<CardProps> = ({
   hover = false,
 }) => {
   const variants = {
-    default: 'bg-white border border-gray-200',
+    default: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700',
     glass: 'glass',
     'glass-card': 'glass-card',
   };

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     // Get current max order_index
     const { data: existingNodes } = await supabaseAdmin
       .from('nodes')
-      .select('order_index')
+      .select('order_index, type, metadata')
       .eq('project_id', projectId)
       .order('order_index', { ascending: false })
       .limit(1);
@@ -32,6 +32,26 @@ export async function POST(request: NextRequest) {
     const nextOrderIndex = existingNodes && existingNodes.length > 0 
       ? (existingNodes[0].order_index || 0) + 1 
       : 0;
+
+    // For phases, calculate the next phaseIndex
+    let phaseIndex: number | undefined;
+    if (type === 'phase') {
+      const { data: allPhases } = await supabaseAdmin
+        .from('nodes')
+        .select('metadata')
+        .eq('project_id', projectId)
+        .eq('type', 'phase');
+
+      if (allPhases && allPhases.length > 0) {
+        // Find the max phaseIndex
+        const maxPhaseIndex = Math.max(
+          ...allPhases.map(p => (p.metadata as any)?.phaseIndex || 0)
+        );
+        phaseIndex = maxPhaseIndex + 1;
+      } else {
+        phaseIndex = 0;
+      }
+    }
 
     // Create new node
     const newNode = {
@@ -50,6 +70,7 @@ export async function POST(request: NextRequest) {
         estimatedTime: '',
         progress: 0,
         createdManually: true,
+        ...(type === 'phase' && phaseIndex !== undefined ? { phaseIndex } : {}),
       },
     };
 

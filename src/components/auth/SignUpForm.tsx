@@ -19,9 +19,14 @@ export const SignUpForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [validationError, setValidationError] = useState('');
 
-  // Auto-redirect if user is already authenticated
+  // Auto-redirect if user is already authenticated or in single-user mode
   React.useEffect(() => {
-    if (user) {
+    // Check if single-user mode
+    const isSingleUserMode = 
+      process.env.NEXT_PUBLIC_DEPLOYMENT_MODE === 'self-hosted' &&
+      process.env.NEXT_PUBLIC_AUTH_MODE === 'single-user';
+
+    if (isSingleUserMode || user) {
       router.push('/dashboard');
     }
   }, [user, router]);
@@ -77,10 +82,10 @@ export const SignUpForm: React.FC = () => {
   return (
     <Card variant="glass-card" className="w-full max-w-md mx-auto">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          📚 SkripsiMate
-        </h1>
-        <p className="text-gray-600">Create Your Account</p>
+        <div className="flex justify-center mb-4">
+          <img src="/main-logo.png" alt="SkripsiMate Logo" className="h-16 w-auto" />
+        </div>
+        <p className="text-gray-600 dark:text-gray-400">Create Your Account</p>
       </div>
 
       <form onSubmit={handleEmailSignUp} className="space-y-4">
@@ -136,9 +141,9 @@ export const SignUpForm: React.FC = () => {
       </form>
 
       <div className="my-6 flex items-center">
-        <div className="flex-1 border-t border-gray-300"></div>
-        <span className="px-4 text-sm text-gray-500">or</span>
-        <div className="flex-1 border-t border-gray-300"></div>
+        <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+        <span className="px-4 text-sm text-gray-500 dark:text-gray-400">or</span>
+        <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
       </div>
 
       <Button
@@ -168,7 +173,7 @@ export const SignUpForm: React.FC = () => {
         Continue with Google
       </Button>
 
-      <p className="mt-6 text-center text-sm text-gray-600">
+      <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
         Already have an account?{' '}
         <button
           type="button"

@@ -95,7 +95,7 @@ async function cascadeStatusUpdate(projectId: string) {
   }
 
   // Get all nodes for the project
-  const { data: allNodes, error } = await supabaseAdmin
+  let { data: allNodes, error } = await supabaseAdmin
     .from('nodes')
     .select('*')
     .eq('project_id', projectId);
@@ -139,6 +139,16 @@ async function cascadeStatusUpdate(projectId: string) {
     }
   }
 
+  // Re-fetch nodes after step updates
+  const { data: updatedNodes } = await supabaseAdmin
+    .from('nodes')
+    .select('*')
+    .eq('project_id', projectId);
+  
+  if (updatedNodes) {
+    allNodes = updatedNodes;
+  }
+
   // Update phases based on their steps
   const phases = allNodes.filter(n => n.type === 'phase');
   for (const phase of phases) {
@@ -159,33 +169,76 @@ async function cascadeStatusUpdate(projectId: string) {
       } else {
         newStatus = 'pending';
       }
-      
-      // Update phase status if changed
-      if (newStatus !== phase.status) {
-        await supabaseAdmin
-          .from('nodes')
-          .update({ 
-            status: newStatus,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', phase.id);
-      }
 
-      // Calculate and update progress
+      // Calculate progress
       const completedSteps = phaseSteps.filter(s => s.status === 'completed').length;
       const progress = Math.round((completedSteps / phaseSteps.length) * 100);
       
       const currentMetadata = phase.metadata as any || {};
+      
+      // Update phase status AND progress in one call
       await supabaseAdmin
         .from('nodes')
-        .update({
+        .update({ 
+          status: newStatus,
           metadata: {
             ...currentMetadata,
             progress,
           },
+          updated_at: new Date().toISOString(),
         })
         .eq('id', phase.id);
     }
   }
+
+  // Update project-level progress
+  await updateProjectProgress(projectId, allNodes);
+}
+
+// Helper function: Update project-level progress
+async function updateProjectProgress(projectId: string, allNodes: any[]) {
+  if (!supabaseAdmin) return;
+
+  const totalNodes = allNodes.filter(n => n.type !== 'phase'); // Count steps & substeps
+  const completedNodes = totalNodes.filter(n => n.status === 'completed');
+  
+  const progressPercentage = totalNodes.length > 0 
+    ? Math.round((completedNodes.length / totalNodes.length) * 100)
+    : 0;
+
+  // Find current phase (first in-progress or pending phase)
+  const phases = allNodes.filter(n => n.type === 'phase').sort((a, b) => {
+    const aIndex = (a.metadata as any)?.phaseIndex || 0;
+    const bIndex = (b.metadata as any)?.phaseIndex || 0;
+    return aIndex - bIndex;
+  });
+
+  const currentPhase = phases.find(p => p.status === 'in_progress') 
+    || phases.find(p => p.status === 'pending')
+    || phases[phases.length - 1]; // Last phase if all completed
+
+  // Get existing metadata
+  const { data: project } = await supabaseAdmin
+    .from('projects')
+    .select('metadata')
+    .eq('id', projectId)
+    .single();
+
+  const existingMetadata = (project?.metadata as any) || {};
+
+  // Update project metadata
+  await supabaseAdmin
+    .from('projects')
+    .update({
+      metadata: {
+        ...existingMetadata,
+        currentPhase: currentPhase?.title || 'N/A',
+        totalSteps: totalNodes.length,
+        completedSteps: completedNodes.length,
+        progressPercentage,
+      },
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', projectId);
 }
 

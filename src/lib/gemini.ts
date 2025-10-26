@@ -238,6 +238,66 @@ export const generateWithFallback = async (prompt: string): Promise<string> => {
   }
 };
 
+// ============================================
+// CUSTOM API KEY SUPPORT (Self-Hosted)
+// ============================================
+
+/**
+ * Create custom Gemini client with provided API key
+ * For self-hosted deployments with custom AI configuration
+ */
+export const createCustomGeminiClient = (apiKey: string, model: string = 'gemini-1.5-flash') => {
+  const customGenAI = new GoogleGenerativeAI(apiKey);
+  const customModel = customGenAI.getGenerativeModel({ 
+    model,
+    generationConfig: {
+      temperature: 0.7,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: 8192,
+    },
+  });
+  
+  return { genAI: customGenAI, model: customModel };
+};
+
+/**
+ * Get AI config from localStorage (client-side only)
+ * Returns null if not found or if running on server
+ */
+export const getStoredAIConfig = () => {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const stored = localStorage.getItem('ai_config');
+    if (!stored) return null;
+    return JSON.parse(stored);
+  } catch (error) {
+    console.error('Failed to parse AI config:', error);
+    return null;
+  }
+};
+
+/**
+ * Generate content with custom or default client
+ * Checks localStorage for custom AI config first
+ */
+export const generateWithCustomConfig = async (
+  prompt: string,
+  customApiKey?: string,
+  customModel?: string
+): Promise<string> => {
+  // Try custom config first
+  if (customApiKey && customModel) {
+    const { model } = createCustomGeminiClient(customApiKey, customModel);
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  }
+  
+  // Fall back to default
+  return generateContent(prompt);
+};
+
 // Export instances
 export { genAI, generationModel, embeddingModel, flashModel };
 

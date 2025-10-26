@@ -72,43 +72,43 @@ export default function GenerateRoadmapForm({ project, onClose, onGenerated }: G
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               🤖 Generate Thesis Roadmap
             </h2>
             {!generating && (
               <button
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-300 text-2xl"
               >
                 ×
               </button>
             )}
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Let AI create a comprehensive roadmap for your thesis
           </p>
         </div>
 
         {/* Project Info */}
         <div className="glass-card p-4 mb-6">
-          <h3 className="font-semibold text-gray-900 mb-2">Project Details</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Project Details</h3>
           <div className="space-y-2 text-sm">
             <div>
-              <span className="text-gray-600">Title:</span>
+              <span className="text-gray-600 dark:text-gray-400">Title:</span>
               <span className="ml-2 font-medium">{project.title}</span>
             </div>
             <div>
-              <span className="text-gray-600">Jurusan:</span>
+              <span className="text-gray-600 dark:text-gray-400">Jurusan:</span>
               <span className="ml-2 font-medium">{project.jurusan}</span>
             </div>
             <div>
-              <span className="text-gray-600">Timeline:</span>
+              <span className="text-gray-600 dark:text-gray-400">Timeline:</span>
               <span className="ml-2 font-medium">{project.timeline}</span>
             </div>
             {project.description && (
               <div>
-                <span className="text-gray-600">Description:</span>
-                <p className="mt-1 text-gray-700">{project.description}</p>
+                <span className="text-gray-600 dark:text-gray-400">Description:</span>
+                <p className="mt-1 text-gray-700 dark:text-gray-300">{project.description}</p>
               </div>
             )}
           </div>
@@ -137,8 +137,8 @@ export default function GenerateRoadmapForm({ project, onClose, onGenerated }: G
                       className="mt-1"
                     />
                     <div>
-                      <div className="font-semibold text-gray-900">🔄 Generate Fresh (Recommended)</div>
-                      <div className="text-xs text-gray-600">Create new roadmap separately. Existing nodes will remain.</div>
+                      <div className="font-semibold text-gray-900 dark:text-gray-100">🔄 Generate Fresh (Recommended)</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Create new roadmap separately. Existing nodes will remain.</div>
                     </div>
                   </label>
                   <label className="flex items-start space-x-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-red-50 transition-all">
@@ -152,7 +152,7 @@ export default function GenerateRoadmapForm({ project, onClose, onGenerated }: G
                     />
                     <div>
                       <div className="font-semibold text-red-700">⚠️ Replace All</div>
-                      <div className="text-xs text-gray-600">Delete all existing nodes and generate fresh roadmap.</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Delete all existing nodes and generate fresh roadmap.</div>
                     </div>
                   </label>
                 </div>
@@ -163,7 +163,7 @@ export default function GenerateRoadmapForm({ project, onClose, onGenerated }: G
 
         {/* Additional Context */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Additional Context (Optional)
           </label>
           <textarea
@@ -181,10 +181,10 @@ export default function GenerateRoadmapForm({ project, onClose, onGenerated }: G
 
         {/* What Will Be Generated */}
         <div className="glass-card p-4 mb-6 bg-blue-50/50 border-blue-200/30">
-          <h4 className="font-semibold text-gray-900 mb-2">
+          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
             What will be generated:
           </h4>
-          <ul className="space-y-2 text-sm text-gray-700">
+          <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
             <li className="flex items-start space-x-2">
               <span>📅</span>
               <span>5-8 major phases (Preparation, Chapters, Implementation, etc.)</span>

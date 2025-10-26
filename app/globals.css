@@ -1,6 +1,26 @@
 @import "tailwindcss";
 
 /* ============================================ */
+/* TAILWIND V4 - DARK MODE CONFIGURATION */
+/* ============================================ */
+/* Enable class-based dark mode by using .dark class */
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Primary colors for theme */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+}
+
+/* ============================================ */
 /* SKRIPSIMATE - GLASSMORPHISM THEME */
 /* ============================================ */
 
@@ -32,6 +52,37 @@
   --status-progress: rgba(59, 130, 246, 0.8);
   --status-completed: rgba(34, 197, 94, 0.8);
   --status-blocked: rgba(239, 68, 68, 0.8);
+}
+
+/* Dark Mode Theme */
+:root.dark {
+  /* Background gradients (Dark mesh with blue accent) */
+  --bg-gradient-start: #0f172a;
+  --bg-gradient-mid: #1e293b;
+  --bg-gradient-end: #334155;
+  
+  /* Primary colors remain vibrant in dark mode */
+  --primary-50: #1e3a8a;
+  --primary-100: #1e40af;
+  --primary-500: #60a5fa;
+  --primary-600: #3b82f6;
+  --primary-700: #2563eb;
+  
+  /* Text colors */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-light: #94a3b8;
+  
+  /* Glass effect colors */
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: rgba(0, 0, 0, 0.3);
+  
+  /* Status colors (with opacity) */
+  --status-pending: rgba(148, 163, 184, 0.9);
+  --status-progress: rgba(96, 165, 250, 0.9);
+  --status-completed: rgba(74, 222, 128, 0.9);
+  --status-blocked: rgba(248, 113, 113, 0.9);
 }
 
 @theme {
@@ -110,12 +161,26 @@
   box-shadow: var(--shadow-glass);
 }
 
+:root.dark .glass-card {
+  background: linear-gradient(
+    135deg,
+    rgba(31, 41, 55, 0.8),
+    rgba(31, 41, 55, 0.6)
+  );
+  border: 1px solid rgba(75, 85, 99, 0.3);
+}
+
 /* Glass panel (for chat, header) */
 .glass-panel {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(var(--blur-glass-xl));
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-glass-lg);
+}
+
+:root.dark .glass-panel {
+  background: rgba(31, 41, 55, 0.75);
+  border: 1px solid rgba(75, 85, 99, 0.3);
 }
 
 /* Glass hover effect */
@@ -276,6 +341,18 @@
   to {
     stroke-dashoffset: -10;
   }
+}
+
+/* ============================================ */
+/* ANIMATION UTILITIES */
+/* ============================================ */
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-slide-out-right {
+  animation: slideOutRight 0.3s ease-out;
 }
 
 /* ============================================ */

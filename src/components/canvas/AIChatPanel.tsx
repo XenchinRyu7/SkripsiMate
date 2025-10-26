@@ -131,17 +131,17 @@ Try asking: "Break down my Literature Review step" or "What should I work on nex
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <span className="text-xl">🤖</span>
-            <h3 className="font-bold text-gray-900">AI Agents</h3>
+            <h3 className="font-bold text-gray-900 dark:text-gray-100">AI Agents</h3>
             <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">BETA</span>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-xl"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-300 text-xl"
           >
             ×
           </button>
         </div>
-        <p className="text-xs text-gray-600">
+        <p className="text-xs text-gray-600 dark:text-gray-400">
           Ask me anything about your thesis roadmap
         </p>
       </div>
@@ -158,13 +158,13 @@ Try asking: "Break down my Literature Review step" or "What should I work on nex
                 message.role === 'user'
                   ? 'bg-blue-500 text-white'
                   : message.role === 'system'
-                  ? 'bg-gray-100 text-gray-700'
-                  : 'glass-card text-gray-900'
+                  ? 'bg-gray-100 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100'
+                  : 'glass-card text-gray-900 dark:text-gray-100'
               }`}
             >
               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
               <p className={`text-xs mt-1 ${
-                message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
+                message.role === 'user' ? 'text-blue-100' : 'text-gray-600 dark:text-gray-400'
               }`}>
                 {message.timestamp.toLocaleTimeString([], {
                   hour: '2-digit',
@@ -180,7 +180,7 @@ Try asking: "Break down my Literature Review step" or "What should I work on nex
             <div className="glass-card rounded-lg p-3">
               <div className="flex items-center space-x-2">
                 <div className="animate-bounce">💭</div>
-                <p className="text-sm text-gray-600">AI is thinking...</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">AI is thinking...</p>
               </div>
             </div>
           </div>
@@ -191,13 +191,13 @@ Try asking: "Break down my Literature Review step" or "What should I work on nex
 
       {/* Quick Actions */}
       <div className="px-4 py-2 border-t border-white/20 flex-shrink-0">
-        <p className="text-xs text-gray-600 mb-2">Quick actions:</p>
+        <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Quick actions:</p>
         <div className="flex flex-wrap gap-2">
           {quickActions.map((action) => (
             <button
               key={action}
               onClick={() => setInput(action)}
-              className="text-xs px-2 py-1 rounded-lg bg-white/50 hover:bg-white/70 text-gray-700 transition-colors"
+              className="text-xs px-2 py-1 rounded-lg bg-white/50 hover:bg-white/70 text-gray-700 dark:text-gray-300 transition-colors"
             >
               {action}
             </button>

@@ -39,12 +39,12 @@ const PhaseNode: FC<NodeProps<any>> = ({ data }) => {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
           <span className="text-2xl">📅</span>
-          <h3 className="font-bold text-gray-900 text-lg">{data.title}</h3>
+          <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg">{data.title}</h3>
         </div>
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          data.status === 'completed' ? 'bg-green-100 text-green-700' :
-          data.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-          'bg-gray-100 text-gray-700'
+          data.status === 'completed' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+          data.status === 'in_progress' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+          'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
         }`}>
           {data.status}
         </span>
@@ -52,13 +52,13 @@ const PhaseNode: FC<NodeProps<any>> = ({ data }) => {
 
       {/* Description */}
       {data.description && (
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
           {data.description}
         </p>
       )}
 
       {/* Metadata */}
-      <div className="flex items-center space-x-4 text-xs text-gray-600 mb-3">
+      <div className="flex items-center space-x-4 text-xs text-gray-600 dark:text-gray-400 mb-3">
         <span className="flex items-center space-x-1">
           <span>⏰</span>
           <span>{metadata?.estimatedTime || 'TBD'}</span>
@@ -72,10 +72,10 @@ const PhaseNode: FC<NodeProps<any>> = ({ data }) => {
       {/* Progress Bar */}
       <div>
         <div className="flex items-center justify-between text-xs mb-1">
-          <span className="text-gray-600">Progress</span>
-          <span className="font-medium">{progress}%</span>
+          <span className="text-gray-600 dark:text-gray-400">Progress</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100">{progress}%</span>
         </div>
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all"
             style={{ width: `${progress}%` }}

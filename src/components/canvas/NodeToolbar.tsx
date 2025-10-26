@@ -2,24 +2,28 @@
 'use client';
 
 import { useState } from 'react';
+import { Calendar, FileText, CheckSquare, Bot, Loader2 } from "lucide-react";
 
 interface NodeToolbarProps {
-  onAddNode: (type: 'phase' | 'step' | 'substep') => void;
-  isEdgeMode: boolean;
-  onToggleEdgeMode: () => void;
+  onStartDragNode: (type: 'phase' | 'step' | 'substep') => void;
+  onCancelDragNode: () => void;
+  dragNodeType: 'phase' | 'step' | 'substep' | null;
   isAddingNode: boolean;
   onGenerateAI?: () => void;
   isGenerating?: boolean;
 }
 
-export default function NodeToolbar({ onAddNode, isEdgeMode, onToggleEdgeMode, isAddingNode, onGenerateAI, isGenerating }: NodeToolbarProps) {
-  const [selectedTool, setSelectedTool] = useState<string | null>(null);
-
+export default function NodeToolbar({ 
+  onStartDragNode, 
+  onCancelDragNode, 
+  dragNodeType,
+  isAddingNode, 
+  onGenerateAI, 
+  isGenerating 
+}: NodeToolbarProps) {
+  
   const handleToolClick = (type: 'phase' | 'step' | 'substep') => {
-    setSelectedTool(type);
-    onAddNode(type);
-    // Reset after a short delay
-    setTimeout(() => setSelectedTool(null), 300);
+    onStartDragNode(type);
   };
 
   return (
@@ -29,62 +33,58 @@ export default function NodeToolbar({ onAddNode, isEdgeMode, onToggleEdgeMode, i
           {/* Add Phase */}
           <button
             onClick={() => handleToolClick('phase')}
-            disabled={isAddingNode}
+            disabled={dragNodeType !== null && dragNodeType !== 'phase'}
             className={`flex flex-col items-center space-y-1 px-6 py-3 rounded-xl transition-all group hover:scale-105 ${
-              selectedTool === 'phase'
-                ? 'bg-blue-500 text-white shadow-lg scale-105'
-                : 'bg-white hover:bg-blue-50 text-gray-700 border-2 border-blue-200'
+              dragNodeType === 'phase'
+                ? 'bg-blue-500 text-white shadow-lg scale-105 ring-4 ring-blue-300'
+                : 'bg-white hover:bg-blue-50 text-gray-700 dark:text-gray-900 border-2 border-blue-200'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            <div className="text-3xl">📅</div>
-            <span className="text-xs font-semibold">Phase</span>
+            <Calendar className="w-8 h-8" />
+            <span className="text-xs font-semibold">{dragNodeType === 'phase' ? 'Click to Place' : 'Phase'}</span>
           </button>
 
           {/* Add Step */}
           <button
             onClick={() => handleToolClick('step')}
-            disabled={isAddingNode}
+            disabled={dragNodeType !== null && dragNodeType !== 'step'}
             className={`flex flex-col items-center space-y-1 px-6 py-3 rounded-xl transition-all group hover:scale-105 ${
-              selectedTool === 'step'
-                ? 'bg-purple-500 text-white shadow-lg scale-105'
-                : 'bg-white hover:bg-purple-50 text-gray-700 border-2 border-purple-200'
+              dragNodeType === 'step'
+                ? 'bg-purple-500 text-white shadow-lg scale-105 ring-4 ring-purple-300'
+                : 'bg-white hover:bg-purple-50 text-gray-700 dark:text-gray-900 border-2 border-purple-200'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            <div className="text-3xl">📝</div>
-            <span className="text-xs font-semibold">Step</span>
+            <FileText className="w-8 h-8" />
+            <span className="text-xs font-semibold">{dragNodeType === 'step' ? 'Click to Place' : 'Step'}</span>
           </button>
 
           {/* Add Substep */}
           <button
             onClick={() => handleToolClick('substep')}
-            disabled={isAddingNode}
+            disabled={dragNodeType !== null && dragNodeType !== 'substep'}
             className={`flex flex-col items-center space-y-1 px-6 py-3 rounded-xl transition-all group hover:scale-105 ${
-              selectedTool === 'substep'
-                ? 'bg-pink-500 text-white shadow-lg scale-105'
-                : 'bg-white hover:bg-pink-50 text-gray-700 border-2 border-pink-200'
+              dragNodeType === 'substep'
+                ? 'bg-pink-500 text-white shadow-lg scale-105 ring-4 ring-pink-300'
+                : 'bg-white hover:bg-pink-50 text-gray-700 dark:text-gray-900 border-2 border-pink-200'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            <div className="text-3xl">✓</div>
-            <span className="text-xs font-semibold">Substep</span>
+            <CheckSquare className="w-8 h-8" />
+            <span className="text-xs font-semibold">{dragNodeType === 'substep' ? 'Click to Place' : 'Substep'}</span>
           </button>
 
-          {/* Divider */}
-          <div className="w-px h-12 bg-gray-300 mx-2"></div>
-
-          {/* Edge Mode Toggle */}
-          <button
-            onClick={onToggleEdgeMode}
-            className={`flex flex-col items-center space-y-1 px-6 py-3 rounded-xl transition-all group hover:scale-105 ${
-              isEdgeMode
-                ? 'bg-green-500 text-white shadow-lg scale-105'
-                : 'bg-white hover:bg-green-50 text-gray-700 border-2 border-green-200'
-            }`}
-          >
-            <div className="text-3xl">🔗</div>
-            <span className="text-xs font-semibold">
-              {isEdgeMode ? 'Connecting' : 'Connect'}
-            </span>
-          </button>
+          {/* Cancel Button (show when dragging) */}
+          {dragNodeType && (
+            <>
+              <div className="w-px h-12 bg-gray-300 mx-2"></div>
+              <button
+                onClick={onCancelDragNode}
+                className="flex flex-col items-center space-y-1 px-6 py-3 rounded-xl transition-all bg-red-500 hover:bg-red-600 text-white shadow-lg"
+              >
+                <span className="text-2xl">✕</span>
+                <span className="text-xs font-semibold">Cancel</span>
+              </button>
+            </>
+          )}
 
           {/* Divider */}
           <div className="w-px h-12 bg-gray-300 mx-2"></div>
@@ -100,7 +100,11 @@ export default function NodeToolbar({ onAddNode, isEdgeMode, onToggleEdgeMode, i
                   : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white border-2 border-purple-300 shadow-lg'
               } disabled:opacity-70 disabled:cursor-not-allowed`}
             >
-              <div className="text-3xl">{isGenerating ? '⏳' : '🤖'}</div>
+              {isGenerating ? (
+                <Loader2 className="w-8 h-8 animate-spin" />
+              ) : (
+                <Bot className="w-8 h-8" />
+              )}
               <span className="text-xs font-semibold">
                 {isGenerating ? 'Generating...' : 'AI Generate'}
               </span>
@@ -108,11 +112,21 @@ export default function NodeToolbar({ onAddNode, isEdgeMode, onToggleEdgeMode, i
           )}
 
           {/* Info */}
-          <div className="ml-4 text-xs text-gray-600 max-w-xs">
-            <div className="font-semibold mb-1">Quick Add:</div>
-            <div>Click card to add to canvas center</div>
-            <div>Click 🔗 then drag between nodes to connect</div>
-          </div>
+          {!dragNodeType && (
+            <div className="ml-4 text-xs text-gray-600 dark:text-gray-400 max-w-xs">
+              <div className="font-semibold text-gray-900 dark:text-gray-100 mb-1">💡 Quick Tips:</div>
+              <div>• Click node type, then click canvas to place</div>
+              <div>• Drag from node handle to connect</div>
+              <div>• Press <kbd className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs">ESC</kbd> to cancel</div>
+            </div>
+          )}
+          {dragNodeType && (
+            <div className="ml-4 text-xs text-white bg-blue-600 dark:bg-blue-500 px-4 py-2 rounded-lg max-w-xs animate-pulse">
+              <div className="font-semibold mb-1">🎯 Placing Mode Active</div>
+              <div>Click anywhere on canvas to place node</div>
+              <div className="mt-1">Press ESC or click Cancel to stop</div>
+            </div>
+          )}
         </div>
       </div>
     </div>

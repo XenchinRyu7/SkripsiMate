@@ -1,7 +1,7 @@
 // Canvas Board Component - React Flow Integration
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import {
   ReactFlow,
   Node,
@@ -16,9 +16,12 @@ import {
   Connection,
   Panel,
   ConnectionMode,
+  useReactFlow,
+  ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Node as DBNode } from '@/lib/supabase';
+import { useToast } from '@/components/ui/Toast';
 import PhaseNode from './nodes/PhaseNode';
 import StepNode from './nodes/StepNode';
 import NodeDetailPanel from './NodeDetailPanel';
@@ -29,6 +32,7 @@ interface CanvasBoardProps {
   projectId: string;
   nodes: DBNode[];
   onNodesChange: (nodes: DBNode[]) => void;
+  onProjectUpdate?: (project: any) => void;
   onGenerateAI?: () => void;
   isGenerating?: boolean;
   project?: any;
@@ -155,27 +159,65 @@ const generateEdges = (dbNodes: DBNode[], project?: any): Edge[] => {
   return edges;
 };
 
-export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, onGenerateAI, isGenerating, project }: CanvasBoardProps) {
+function CanvasBoardInner({ projectId, nodes: dbNodes, onNodesChange, onProjectUpdate, onGenerateAI, isGenerating, project }: CanvasBoardProps) {
+  const toast = useToast();
+  const { screenToFlowPosition } = useReactFlow();
   const [nodes, setNodes, onNodesChangeHandler] = useNodesState(convertToReactFlowNodes(dbNodes));
   const [edges, setEdges, onEdgesChangeHandler] = useEdgesState(generateEdges(dbNodes, project));
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
   const [selectedNodeForDetail, setSelectedNodeForDetail] = useState<DBNode | null>(null);
   const [isAutoFormatting, setIsAutoFormatting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isEdgeMode, setIsEdgeMode] = useState(false);
   const [isAddingNode, setIsAddingNode] = useState(false);
   const [selectedEdges, setSelectedEdges] = useState<string[]>([]);
   const [selectedEdgeForStyle, setSelectedEdgeForStyle] = useState<Edge | null>(null);
   const [edgeToolbarPosition, setEdgeToolbarPosition] = useState({ x: 0, y: 0 });
+  const [dragNodeType, setDragNodeType] = useState<'phase' | 'step' | 'substep' | null>(null);
+  const [dragPreviewPosition, setDragPreviewPosition] = useState<{ x: number; y: number } | null>(null);
 
   const onConnect = useCallback(
     async (params: Connection) => {
-      // Add edge to local state
-      setEdges((eds) => addEdge({
-        ...params,
+      // Determine edge style based on connection type
+      let edgeStyle: any = {
         type: 'smoothstep',
         animated: false,
         style: { stroke: '#6b7280', strokeWidth: 2 },
+      };
+
+      // If connecting phases (source and target are phases), use phase progression style
+      const sourceNode = dbNodes.find(n => n.id === params.source);
+      const targetNode = dbNodes.find(n => n.id === params.target);
+
+      if (sourceNode?.type === 'phase' && targetNode?.type === 'phase') {
+        // Phase-to-phase: green, animated, dashed (like AI-generated)
+        edgeStyle = {
+          type: 'smoothstep',
+          animated: true,
+          style: { stroke: '#10b981', strokeWidth: 3, strokeDasharray: '5,5' },
+          label: '→',
+          labelStyle: { fill: '#10b981', fontWeight: 600 },
+          labelBgStyle: { fill: 'white' },
+        };
+      } else if (sourceNode?.type === 'phase' && targetNode?.type === 'step') {
+        // Phase-to-step: blue
+        edgeStyle = {
+          type: 'smoothstep',
+          animated: false,
+          style: { stroke: '#3b82f6', strokeWidth: 2 },
+        };
+      } else if (sourceNode?.type === 'step' && targetNode?.type === 'substep') {
+        // Step-to-substep: purple
+        edgeStyle = {
+          type: 'smoothstep',
+          animated: false,
+          style: { stroke: '#8b5cf6', strokeWidth: 2 },
+        };
+      }
+
+      // Add edge to local state
+      setEdges((eds) => addEdge({
+        ...params,
+        ...edgeStyle,
       }, eds));
 
       // Save edge to database (store in node metadata or separate edges table)
@@ -189,13 +231,19 @@ export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, 
             target: params.target,
             sourceHandle: params.sourceHandle,
             targetHandle: params.targetHandle,
+            type: edgeStyle.type,
+            animated: edgeStyle.animated,
+            style: edgeStyle.style,
+            label: edgeStyle.label,
+            labelStyle: edgeStyle.labelStyle,
+            labelBgStyle: edgeStyle.labelBgStyle,
           }),
         });
       } catch (error) {
         console.error('Failed to save edge:', error);
       }
     },
-    [setEdges, projectId]
+    [setEdges, projectId, dbNodes]
   );
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
@@ -256,7 +304,7 @@ export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, 
       
     } catch (error) {
       console.error('Error auto-formatting:', error);
-      alert('Failed to auto-format nodes. Please try again.');
+      toast.error('Failed to auto-format nodes. Please try again.');
     } finally {
       setIsAutoFormatting(false);
     }
@@ -282,23 +330,54 @@ export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, 
     }
   }, [setNodes, setEdges, onNodesChange, selectedNodeForDetail, project]);
 
-  // Add node manually
-  const handleAddNode = useCallback(async (type: 'phase' | 'step' | 'substep') => {
+  // Start drag mode for adding node
+  const handleStartDragNode = useCallback((type: 'phase' | 'step' | 'substep') => {
+    setDragNodeType(type);
+    setIsAddingNode(true);
+    document.body.style.cursor = 'crosshair';
+  }, []);
+
+  // Cancel drag mode
+  const handleCancelDragNode = useCallback(() => {
+    setDragNodeType(null);
+    setDragPreviewPosition(null);
+    setIsAddingNode(false);
+    document.body.style.cursor = 'default';
+  }, []);
+
+  // Track mouse position during drag
+  const handleMouseMove = useCallback((event: React.MouseEvent) => {
+    if (dragNodeType) {
+      // Get React Flow instance to convert screen coordinates to flow coordinates
+      const bounds = event.currentTarget.getBoundingClientRect();
+      setDragPreviewPosition({
+        x: event.clientX - bounds.left,
+        y: event.clientY - bounds.top,
+      });
+    }
+  }, [dragNodeType]);
+
+  // Create node at drop position (using React Flow's onPaneClick)
+  const handlePaneClick = useCallback(async (event: React.MouseEvent) => {
+    if (!dragNodeType) return;
+
+    // Convert screen coordinates to flow coordinates (accounts for zoom/pan)
+    const flowPosition = screenToFlowPosition({
+      x: event.clientX,
+      y: event.clientY,
+    });
+    
     setIsAddingNode(true);
     
     try {
-      // Calculate center position of current viewport
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-      
       const response = await fetch(`/api/nodes/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           projectId,
-          type,
-          title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-          position: { x: centerX, y: centerY },
+          type: dragNodeType,
+          title: `New ${dragNodeType.charAt(0).toUpperCase() + dragNodeType.slice(1)}`,
+          position: { x: flowPosition.x, y: flowPosition.y },
         }),
       });
 
@@ -312,18 +391,17 @@ export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, 
       setNodes(convertToReactFlowNodes(updatedNodes));
       onNodesChange(updatedNodes);
       
+      toast.success(`${dragNodeType.charAt(0).toUpperCase() + dragNodeType.slice(1)} added successfully!`);
+      
+      // Reset drag state
+      handleCancelDragNode();
+      
     } catch (error) {
       console.error('Error adding node:', error);
-      alert('Failed to add node. Please try again.');
-    } finally {
+      toast.error('Failed to add node. Please try again.');
       setIsAddingNode(false);
     }
-  }, [projectId, setNodes, onNodesChange]);
-
-  // Toggle edge mode
-  const toggleEdgeMode = useCallback(() => {
-    setIsEdgeMode(prev => !prev);
-  }, []);
+  }, [dragNodeType, projectId, setNodes, onNodesChange, handleCancelDragNode, toast, screenToFlowPosition]);
 
   // Handle edge click - Show style toolbar
   const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
@@ -419,6 +497,11 @@ export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, 
     
     // Delete from database
     try {
+      let deletedSuccessfully = 0;
+      let latestRemainingNodes: any[] | null = null;
+      
+      console.log('🗑️ Deleting', nodesToDelete.length, 'node(s)...');
+      
       for (const node of nodesToDelete) {
         const response = await fetch(`/api/nodes/${node.id}?projectId=${projectId}`, {
           method: 'DELETE',
@@ -426,30 +509,121 @@ export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, 
         
         if (!response.ok) {
           const error = await response.text();
-          console.error('Failed to delete node:', node.id, error);
+          console.error('❌ Failed to delete node:', node.id, error);
         } else {
-          console.log('Node deleted successfully:', node.id);
+          const deleteData = await response.json();
+          console.log('✅ Node deleted successfully:', node.id);
+          console.log('📦 Remaining nodes from DELETE:', deleteData.nodes?.length);
+          
+          // Keep track of latest remaining nodes from DELETE response
+          if (deleteData.nodes) {
+            latestRemainingNodes = deleteData.nodes;
+          }
+          
+          deletedSuccessfully++;
         }
       }
       
-      // Refresh the page data to get updated nodes and edges
-      if (onNodesChange) {
-        // Fetch updated nodes
-        const updatedDbNodes = dbNodes.filter(
-          (n) => !nodesToDelete.find((del) => del.id === n.id)
-        );
-        onNodesChange(updatedDbNodes);
+      // If at least one node was deleted, recalculate progress
+      if (deletedSuccessfully > 0) {
+        console.log('✅ Successfully deleted', deletedSuccessfully, 'node(s)');
+        console.log('🔄 Waiting 500ms for DB to stabilize...');
+        
+        // Wait a bit for database to stabilize
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        console.log('🔄 Recalculating progress...');
+        
+        // Call recalculate API
+        const recalcResponse = await fetch(`/api/projects/${projectId}/recalculate`, {
+          method: 'POST',
+        });
+        
+        console.log('📡 Recalculate API response status:', recalcResponse.status);
+        
+        if (recalcResponse.ok) {
+          const responseData = await recalcResponse.json();
+          console.log('📦 Recalculate API response:', responseData);
+          
+          const { nodes: updatedNodes, project: updatedProject, summary } = responseData;
+          
+          console.log('📊 Progress Summary:', summary);
+          console.log('📈 Total nodes in DB:', summary?.totalNodes);
+          console.log('✅ Updated project metadata:', updatedProject?.metadata);
+          
+          // Update local state with recalculated data
+          setNodes(convertToReactFlowNodes(updatedNodes));
+          setEdges(generateEdges(updatedNodes, updatedProject));
+          onNodesChange(updatedNodes);
+          
+          // Update project metadata (for navbar progress)
+          if (onProjectUpdate && updatedProject) {
+            console.log('🔄 Calling onProjectUpdate with:', updatedProject);
+            onProjectUpdate(updatedProject);
+          } else {
+            console.warn('⚠️ onProjectUpdate not available or updatedProject is null');
+          }
+          
+          console.log('✅ Progress recalculated successfully!');
+          toast.success(`${deletedSuccessfully} node(s) deleted. Progress updated to ${summary?.progressPercentage}%!`);
+        } else {
+          const errorText = await recalcResponse.text();
+          console.error('❌ Failed to recalculate progress:', errorText);
+          toast.warning('Nodes deleted but progress may need manual refresh');
+        }
       }
     } catch (error) {
-      console.error('Failed to delete nodes:', error);
+      console.error('❌ Failed to delete nodes:', error);
+      toast.error('Failed to delete nodes. Please try again.');
     }
-  }, [setNodes, projectId, dbNodes, onNodesChange]);
+  }, [setNodes, setEdges, projectId, onNodesChange, onProjectUpdate, toast]);
 
   // Empty state - but still show canvas with toolbar
   const isEmpty = dbNodes.length === 0;
 
+  // ESC key to cancel drag
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (event.key === 'Escape' && dragNodeType) {
+      handleCancelDragNode();
+    }
+  }, [dragNodeType, handleCancelDragNode]);
+
+  // Attach ESC key listener
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown as any);
+    return () => window.removeEventListener('keydown', handleKeyDown as any);
+  }, [handleKeyDown]);
+
   return (
-    <div className="w-full h-full">
+    <div 
+      className="w-full h-full relative"
+      onMouseMove={handleMouseMove}
+    >
+      {/* Drag Preview Overlay */}
+      {dragNodeType && dragPreviewPosition && (
+        <div
+          className="absolute pointer-events-none z-50"
+          style={{
+            left: dragPreviewPosition.x,
+            top: dragPreviewPosition.y,
+            transform: 'translate(-50%, -50%)',
+          }}
+        >
+          <div className={`px-4 py-2 rounded-lg shadow-2xl border-2 opacity-70 ${
+            dragNodeType === 'phase' ? 'bg-blue-100 border-blue-400' :
+            dragNodeType === 'step' ? 'bg-purple-100 border-purple-400' :
+            'bg-pink-100 border-pink-400'
+          }`}>
+            <div className="text-sm font-semibold text-gray-700">
+              {dragNodeType === 'phase' ? '📅 Phase' :
+               dragNodeType === 'step' ? '📝 Step' :
+               '✅ Substep'}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">Click to place</div>
+          </div>
+        </div>
+      )}
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -459,6 +633,7 @@ export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, 
         onNodeClick={onNodeClick}
         onNodeDragStop={onNodeDragStop}
         onEdgeClick={onEdgeClick}
+        onPaneClick={handlePaneClick}
         onSelectionChange={onSelectionChange}
         onNodesDelete={onNodesDelete}
         onEdgesDelete={onEdgesDelete}
@@ -470,7 +645,8 @@ export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, 
         className="bg-transparent"
         deleteKeyCode="Delete"
         edgesFocusable={true}
-        connectionMode={ConnectionMode.Loose}
+        connectionMode={ConnectionMode.Strict}
+        connectOnClick={false}
       >
         {/* SVG Marker Definitions */}
         <svg style={{ position: 'absolute', width: 0, height: 0 }}>
@@ -537,19 +713,19 @@ export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, 
         {/* Info Panel */}
         <Panel position="top-left" className="glass-panel rounded-lg px-4 py-2 text-sm">
           <div className="flex items-center space-x-4">
-            <span className="text-gray-600">
+            <span className="text-gray-900 dark:text-gray-100">
               📊 {dbNodes.length} nodes
             </span>
-            <span className="text-gray-600">
+            <span className="text-gray-900 dark:text-gray-100">
               🔗 {edges.length} connections
             </span>
             {selectedNodes.length > 0 && (
-              <span className="text-blue-600 font-medium">
+              <span className="text-blue-600 dark:text-blue-400 font-medium">
                 ✓ {selectedNodes.length} selected
               </span>
             )}
             {isSaving && (
-              <span className="text-green-600 text-xs">
+              <span className="text-green-600 dark:text-green-400 text-xs">
                 💾 Saving...
               </span>
             )}
@@ -609,15 +785,15 @@ export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, 
         </Panel>
 
         {/* Instructions */}
-        <Panel position="bottom-left" className="glass-panel rounded-lg px-4 py-2 text-xs text-gray-600 mb-24">
+        <Panel position="bottom-left" className="glass-panel rounded-lg px-4 py-2 text-xs text-gray-600 dark:text-gray-300 mb-24">
           <div className="space-y-1">
-            <div>🖱️ <strong>Click</strong> node to view details</div>
-            <div>🖱️ <strong>Drag</strong> to move nodes (auto-save)</div>
-            <div>🔗 <strong>Drag</strong> from handle to create connection</div>
-            <div>🎨 <strong>Click edge</strong> to style (type, arrows, delete)</div>
-            <div>⌨️ <strong>Delete</strong> key to remove selected edges</div>
-            <div>⌘/Ctrl + <strong>Drag</strong> to pan</div>
-            <div>🔍 <strong>Scroll</strong> to zoom</div>
+            <div>🖱️ <strong className="text-gray-900 dark:text-white">Click</strong> node to view details</div>
+            <div>🖱️ <strong className="text-gray-900 dark:text-white">Drag</strong> to move nodes (auto-save)</div>
+            <div>🔗 <strong className="text-gray-900 dark:text-white">Drag</strong> from handle to create connection</div>
+            <div>🎨 <strong className="text-gray-900 dark:text-white">Click edge</strong> to style (type, arrows, delete)</div>
+            <div>⌨️ <strong className="text-gray-900 dark:text-white">Delete</strong> key to remove selected edges</div>
+            <div>⌘/Ctrl + <strong className="text-gray-900 dark:text-white">Drag</strong> to pan</div>
+            <div>🔍 <strong className="text-gray-900 dark:text-white">Scroll</strong> to zoom</div>
           </div>
         </Panel>
       </ReactFlow>
@@ -634,9 +810,9 @@ export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, 
 
       {/* Node Toolbar */}
       <NodeToolbar
-        onAddNode={handleAddNode}
-        isEdgeMode={isEdgeMode}
-        onToggleEdgeMode={toggleEdgeMode}
+        onStartDragNode={handleStartDragNode}
+        onCancelDragNode={handleCancelDragNode}
+        dragNodeType={dragNodeType}
         isAddingNode={isAddingNode}
         onGenerateAI={onGenerateAI}
         isGenerating={isGenerating}
@@ -659,3 +835,11 @@ export default function CanvasBoard({ projectId, nodes: dbNodes, onNodesChange, 
   );
 }
 
+// Wrapper component with ReactFlowProvider
+export default function CanvasBoard(props: CanvasBoardProps) {
+  return (
+    <ReactFlowProvider>
+      <CanvasBoardInner {...props} />
+    </ReactFlowProvider>
+  );
+}

@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
-    const { projectId, source, target, sourceHandle, targetHandle } = await request.json();
+    const { projectId, source, target, sourceHandle, targetHandle, type, animated, style, label, labelStyle, labelBgStyle } = await request.json();
 
     if (!projectId || !source || !target) {
       return NextResponse.json(
@@ -87,6 +87,12 @@ export async function POST(request: NextRequest) {
           target,
           sourceHandle,
           targetHandle,
+          type: type || 'smoothstep',
+          animated: animated || false,
+          style: style || { stroke: '#6b7280', strokeWidth: 2 },
+          ...(label && { label }),
+          ...(labelStyle && { labelStyle }),
+          ...(labelBgStyle && { labelBgStyle }),
           createdAt: new Date().toISOString(),
         });
       }

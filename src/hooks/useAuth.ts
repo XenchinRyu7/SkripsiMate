@@ -28,8 +28,46 @@ export const useAuth = (): UseAuthReturn => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Check if single-user mode is enabled
+  const isSingleUserMode = 
+    process.env.NEXT_PUBLIC_DEPLOYMENT_MODE === 'self-hosted' &&
+    process.env.NEXT_PUBLIC_AUTH_MODE === 'single-user';
+
   useEffect(() => {
-    // Listen to auth state changes
+    // Single-user mode: Create fake user and bypass auth
+    if (isSingleUserMode) {
+      const fakeUser = {
+        uid: 'single-user-local',
+        email: 'local@skripsimate.local',
+        displayName: 'Local User',
+        emailVerified: true,
+        isAnonymous: false,
+        metadata: {
+          creationTime: new Date().toISOString(),
+          lastSignInTime: new Date().toISOString(),
+        },
+        providerData: [],
+        refreshToken: '',
+        tenantId: null,
+        delete: async () => {},
+        getIdToken: async () => 'fake-token',
+        getIdTokenResult: async () => ({} as any),
+        reload: async () => {},
+        toJSON: () => ({}),
+        phoneNumber: null,
+        photoURL: null,
+        providerId: 'fake',
+      } as FirebaseUser;
+
+      setUser(fakeUser);
+      setLoading(false);
+      
+      // Set cookie for middleware
+      document.cookie = `firebase-auth=true; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+      return;
+    }
+
+    // Multi-user mode: Use Firebase auth
     const unsubscribe = onAuthChange((user) => {
       setUser(user);
       setLoading(false);
@@ -46,7 +84,7 @@ export const useAuth = (): UseAuthReturn => {
 
     // Cleanup subscription
     return () => unsubscribe();
-  }, []);
+  }, [isSingleUserMode]);
 
   const handleSignIn = async (email: string, password: string) => {
     try {

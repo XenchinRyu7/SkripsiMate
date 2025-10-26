@@ -67,14 +67,14 @@ export default function EdgeStyleToolbar({ edge, position, onUpdate, onDelete, o
         <div className="flex items-center space-x-3">
           {/* Line Type */}
           <div className="flex flex-col space-y-1">
-            <span className="text-xs font-semibold text-gray-600">Line Type</span>
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">Line Type</span>
             <div className="flex space-x-1">
               <button
                 onClick={() => handleLineTypeChange('default')}
                 className={`p-2 rounded transition-all ${
                   lineType === 'default'
                     ? 'bg-blue-500 text-white'
-                    : 'bg-white hover:bg-gray-100 text-gray-700'
+                    : 'bg-white hover:bg-gray-100 text-gray-700 dark:text-gray-300'
                 }`}
                 title="Straight"
               >
@@ -87,7 +87,7 @@ export default function EdgeStyleToolbar({ edge, position, onUpdate, onDelete, o
                 className={`p-2 rounded transition-all ${
                   lineType === 'smoothstep'
                     ? 'bg-blue-500 text-white'
-                    : 'bg-white hover:bg-gray-100 text-gray-700'
+                    : 'bg-white hover:bg-gray-100 text-gray-700 dark:text-gray-300'
                 }`}
                 title="Curved"
               >
@@ -100,7 +100,7 @@ export default function EdgeStyleToolbar({ edge, position, onUpdate, onDelete, o
                 className={`p-2 rounded transition-all ${
                   lineType === 'step'
                     ? 'bg-blue-500 text-white'
-                    : 'bg-white hover:bg-gray-100 text-gray-700'
+                    : 'bg-white hover:bg-gray-100 text-gray-700 dark:text-gray-300'
                 }`}
                 title="Elbowed"
               >
@@ -116,14 +116,14 @@ export default function EdgeStyleToolbar({ edge, position, onUpdate, onDelete, o
 
           {/* Start Marker */}
           <div className="flex flex-col space-y-1">
-            <span className="text-xs font-semibold text-gray-600">Start Point</span>
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">Start Point</span>
             <div className="flex space-x-1">
               <button
                 onClick={() => handleStartMarkerChange('none')}
                 className={`p-2 rounded transition-all ${
                   startMarker === 'none'
                     ? 'bg-purple-500 text-white'
-                    : 'bg-white hover:bg-gray-100 text-gray-700'
+                    : 'bg-white hover:bg-gray-100 text-gray-700 dark:text-gray-300'
                 }`}
                 title="None"
               >
@@ -136,7 +136,7 @@ export default function EdgeStyleToolbar({ edge, position, onUpdate, onDelete, o
                 className={`p-2 rounded transition-all ${
                   startMarker === 'arrow'
                     ? 'bg-purple-500 text-white'
-                    : 'bg-white hover:bg-gray-100 text-gray-700'
+                    : 'bg-white hover:bg-gray-100 text-gray-700 dark:text-gray-300'
                 }`}
                 title="Arrow"
               >
@@ -150,7 +150,7 @@ export default function EdgeStyleToolbar({ edge, position, onUpdate, onDelete, o
                 className={`p-2 rounded transition-all ${
                   startMarker === 'dot'
                     ? 'bg-purple-500 text-white'
-                    : 'bg-white hover:bg-gray-100 text-gray-700'
+                    : 'bg-white hover:bg-gray-100 text-gray-700 dark:text-gray-300'
                 }`}
                 title="Dot"
               >
@@ -167,14 +167,14 @@ export default function EdgeStyleToolbar({ edge, position, onUpdate, onDelete, o
 
           {/* End Marker */}
           <div className="flex flex-col space-y-1">
-            <span className="text-xs font-semibold text-gray-600">End Point</span>
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">End Point</span>
             <div className="flex space-x-1">
               <button
                 onClick={() => handleEndMarkerChange('none')}
                 className={`p-2 rounded transition-all ${
                   endMarker === 'none'
                     ? 'bg-green-500 text-white'
-                    : 'bg-white hover:bg-gray-100 text-gray-700'
+                    : 'bg-white hover:bg-gray-100 text-gray-700 dark:text-gray-300'
                 }`}
                 title="None"
               >
@@ -187,7 +187,7 @@ export default function EdgeStyleToolbar({ edge, position, onUpdate, onDelete, o
                 className={`p-2 rounded transition-all ${
                   endMarker === 'arrow'
                     ? 'bg-green-500 text-white'
-                    : 'bg-white hover:bg-gray-100 text-gray-700'
+                    : 'bg-white hover:bg-gray-100 text-gray-700 dark:text-gray-300'
                 }`}
                 title="Arrow"
               >
@@ -201,7 +201,7 @@ export default function EdgeStyleToolbar({ edge, position, onUpdate, onDelete, o
                 className={`p-2 rounded transition-all ${
                   endMarker === 'dot'
                     ? 'bg-green-500 text-white'
-                    : 'bg-white hover:bg-gray-100 text-gray-700'
+                    : 'bg-white hover:bg-gray-100 text-gray-700 dark:text-gray-300'
                 }`}
                 title="Dot"
               >

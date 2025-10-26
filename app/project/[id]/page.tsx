@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/Toast';
 import { Project, Node as DBNode } from '@/lib/supabase';
 import CanvasBoard from '@/components/canvas/CanvasBoard';
 import AIChatPanel from '@/components/canvas/AIChatPanel';
@@ -19,6 +20,7 @@ export default function ProjectCanvasPage() {
   const params = useParams();
   const projectId = params.id as string;
   const { user, loading: authLoading } = useAuthContext();
+  const toast = useToast();
 
   const [project, setProject] = useState<Project | null>(null);
   const [nodes, setNodes] = useState<DBNode[]>([]);
@@ -37,6 +39,32 @@ export default function ProjectCanvasPage() {
     }
   }, [user, authLoading, router]);
 
+  // Fetch project data (metadata only, for progress updates)
+  const fetchProjectMetadata = async () => {
+    if (!user) return;
+
+    try {
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('metadata, updated_at')
+        .eq('id', projectId)
+        .single();
+
+      if (projectError) throw projectError;
+
+      // Update only metadata & updated_at
+      if (project && projectData) {
+        setProject({
+          ...project,
+          metadata: projectData.metadata,
+          updated_at: projectData.updated_at,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching project metadata:', error);
+    }
+  };
+
   // Fetch project data
   const fetchProject = async () => {
     if (!user) return;
@@ -44,15 +72,35 @@ export default function ProjectCanvasPage() {
     try {
       setLoading(true);
 
-      // Fetch project
+      // Fetch project - check both owner and member access
       const { data: projectData, error: projectError } = await supabase
         .from('projects')
         .select('*')
         .eq('id', projectId)
-        .eq('user_id', user.uid)
         .single();
 
       if (projectError) throw projectError;
+
+      // Check if user has access (owner or member)
+      const isOwner = projectData.user_id === user.uid;
+      let isMember = false;
+
+      if (!isOwner) {
+        // Check if user is a member
+        const { data: memberData } = await supabase
+          .from('project_members')
+          .select('id')
+          .eq('project_id', projectId)
+          .eq('user_id', user.uid)
+          .eq('status', 'active')
+          .single();
+
+        isMember = !!memberData;
+      }
+
+      if (!isOwner && !isMember) {
+        throw new Error('UNAUTHORIZED');
+      }
 
       setProject(projectData as Project);
 
@@ -70,17 +118,53 @@ export default function ProjectCanvasPage() {
       // Show generate form if no nodes yet
       if (!nodesData || nodesData.length === 0) {
         setShowGenerateForm(true);
+      } else {
+        // Auto-recalculate progress for old projects without progressPercentage
+        const metadata = projectData.metadata as any;
+        if (!metadata?.progressPercentage && nodesData.length > 0) {
+          console.log('Old project detected, recalculating progress...');
+          try {
+            const recalcResponse = await fetch(`/api/projects/${projectId}/recalculate`, {
+              method: 'POST',
+            });
+            if (recalcResponse.ok) {
+              const { project: updatedProject, nodes: updatedNodes } = await recalcResponse.json();
+              setProject(updatedProject as Project);
+              setNodes(updatedNodes as DBNode[] || []);
+              toast.success('Project progress calculated!');
+            }
+          } catch (error) {
+            console.error('Failed to recalculate progress:', error);
+          }
+        }
       }
     } catch (error: any) {
       console.error('Error fetching project:', error);
-      if (error.code === 'PGRST116') {
+      if (error.code === 'PGRST116' || error.message === 'UNAUTHORIZED') {
         // Project not found or unauthorized
-        alert('Project not found or unauthorized');
+        toast.error('Project not found or you do not have access');
         router.push('/dashboard');
+      } else {
+        toast.error('Failed to load project');
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle node updates (called by CanvasBoard)
+  const handleNodesUpdate = (updatedNodes: DBNode[]) => {
+    setNodes(updatedNodes);
+    // Refetch project metadata to get updated progress
+    fetchProjectMetadata();
+  };
+
+  // Handle project update (called by CanvasBoard after recalculate)
+  const handleProjectUpdate = (updatedProject: Project) => {
+    console.log('📥 handleProjectUpdate called with:', updatedProject);
+    console.log('📈 New progress:', (updatedProject.metadata as any)?.progressPercentage);
+    setProject(updatedProject);
+    console.log('✅ Project state updated!');
   };
 
   useEffect(() => {
@@ -102,10 +186,10 @@ export default function ProjectCanvasPage() {
       // All changes are auto-saved already, this is just a manual trigger
       // Could be used to trigger a full sync or show success message
       await new Promise(resolve => setTimeout(resolve, 500)); // Simulate save
-      alert('✅ All changes saved successfully!');
+      toast.success('All changes saved successfully!');
     } catch (error) {
       console.error('Save error:', error);
-      alert('❌ Failed to save changes');
+      toast.error('Failed to save changes');
     } finally {
       setSaving(false);
     }
@@ -164,7 +248,8 @@ export default function ProjectCanvasPage() {
           <CanvasBoard
             projectId={projectId}
             nodes={nodes}
-            onNodesChange={setNodes}
+            onNodesChange={handleNodesUpdate}
+            onProjectUpdate={handleProjectUpdate}
             onGenerateAI={handleGenerateAI}
             isGenerating={showGenerateForm}
             project={project}

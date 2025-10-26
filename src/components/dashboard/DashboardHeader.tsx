@@ -5,6 +5,9 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from '@/lib/firebase';
 import { User as FirebaseUser } from 'firebase/auth';
+import NotificationPanel from './NotificationPanel';
+import { useDarkMode } from '@/contexts/DarkModeContext';
+import { LayoutDashboard, Settings, CreditCard, HelpCircle, LogOut, Moon, Sun } from "lucide-react";
 
 interface DashboardHeaderProps {
   user: FirebaseUser | null;
@@ -12,8 +15,12 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ user }: DashboardHeaderProps) {
   const router = useRouter();
+  const { isDark, toggleDarkMode } = useDarkMode();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -21,11 +28,43 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Fetch notification count
+  useEffect(() => {
+    if (user?.email) {
+      fetchNotificationCount();
+      // Refresh every 30 seconds
+      const interval = setInterval(fetchNotificationCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  const fetchNotificationCount = async () => {
+    if (!user?.email) return;
+    
+    try {
+      const response = await fetch(`/api/notifications?email=${encodeURIComponent(user.email)}`, {
+        headers: {
+          'x-user-id': user.uid,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setNotificationCount(data.count || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching notification count:', error);
+    }
+  };
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -44,32 +83,69 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="text-3xl">📚</div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">SkripsiMate</h1>
-              <p className="text-xs text-gray-600">AI-Powered Thesis Planner</p>
-            </div>
+            <img src="/main-logo.png" alt="SkripsiMate Logo" className="h-10 w-auto" />
           </div>
 
           {/* Right Section */}
           <div className="flex items-center space-x-4">
-            {/* Notifications (placeholder) */}
+            {/* Dark Mode Toggle */}
             <button
-              className="relative p-2 rounded-lg hover:bg-white/50 transition-colors"
-              title="Notifications"
+              onClick={toggleDarkMode}
+              className="p-2 rounded-lg hover:bg-white/50 dark:hover:bg-gray-700 transition-colors"
+              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
-              <span className="text-xl">🔔</span>
-              {/* Notification badge */}
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              {isDark ? (
+                <Sun className="w-5 h-5 text-yellow-500" />
+              ) : (
+                <Moon className="w-5 h-5 text-gray-700" />
+              )}
             </button>
 
-            {/* Theme Toggle (placeholder) */}
-            <button
-              className="p-2 rounded-lg hover:bg-white/50 transition-colors"
-              title="Toggle Theme"
-            >
-              <span className="text-xl">🌙</span>
-            </button>
+            {/* Notifications */}
+            <div className="relative" ref={notificationRef}>
+              <button
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  setShowDropdown(false);
+                }}
+                className={`relative p-2 rounded-lg hover:bg-white/50 transition-colors ${
+                  showNotifications ? 'bg-white/70' : ''
+                }`}
+                title="Project Invitations"
+              >
+                {/* Better notification icon (SVG) */}
+                <svg 
+                  className="w-6 h-6 text-gray-700" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" 
+                  />
+                </svg>
+                
+                {/* Notification badge */}
+                {notificationCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    {notificationCount > 9 ? '9+' : notificationCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Notification Panel */}
+              {showNotifications && (
+                <NotificationPanel 
+                  onClose={() => {
+                    setShowNotifications(false);
+                    fetchNotificationCount(); // Refresh count after closing
+                  }}
+                />
+              )}
+            </div>
 
             {/* Profile Dropdown */}
             <div className="relative" ref={dropdownRef}>
@@ -111,11 +187,11 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
               {/* Dropdown Menu */}
               {showDropdown && (
                 <div className="absolute right-0 mt-2 w-56 glass-panel rounded-xl shadow-glass-lg overflow-hidden animate-slide-in-top">
-                  <div className="p-4 border-b border-white/20">
-                    <p className="text-sm font-medium text-gray-900">
+                  <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {user?.displayName || 'User'}
                     </p>
-                    <p className="text-xs text-gray-600 truncate">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
                       {user?.email}
                     </p>
                   </div>
@@ -126,9 +202,9 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
                         setShowDropdown(false);
                         router.push('/dashboard');
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-white/50 transition-colors flex items-center space-x-2"
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors flex items-center space-x-2"
                     >
-                      <span>📊</span>
+                      <LayoutDashboard className="w-4 h-4" />
                       <span>Dashboard</span>
                     </button>
                     <button
@@ -136,29 +212,32 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
                         setShowDropdown(false);
                         router.push('/settings');
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-white/50 transition-colors flex items-center space-x-2"
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors flex items-center space-x-2"
                     >
-                      <span>⚙️</span>
+                      <Settings className="w-4 h-4" />
                       <span>Settings</span>
                     </button>
-                    <button
-                      onClick={() => {
-                        setShowDropdown(false);
-                        router.push('/pricing');
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-white/50 transition-colors flex items-center space-x-2"
-                    >
-                      <span>💳</span>
-                      <span>Pricing</span>
-                    </button>
+                    {/* Only show Plans in cloud mode */}
+                    {process.env.NEXT_PUBLIC_DEPLOYMENT_MODE === 'cloud' && (
+                      <button
+                        onClick={() => {
+                          setShowDropdown(false);
+                          router.push('/pricing');
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors flex items-center space-x-2"
+                      >
+                        <CreditCard className="w-4 h-4" />
+                        <span>Plans</span>
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         setShowDropdown(false);
                         window.open('https://github.com/XenchinRyu7/SkripsiMate/issues', '_blank');
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-white/50 transition-colors flex items-center space-x-2"
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors flex items-center space-x-2"
                     >
-                      <span>❓</span>
+                      <HelpCircle className="w-4 h-4" />
                       <span>Help & Support</span>
                     </button>
                   </div>
@@ -168,7 +247,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
                       onClick={handleSignOut}
                       className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center space-x-2"
                     >
-                      <span>🚪</span>
+                      <LogOut className="w-4 h-4" />
                       <span>Sign Out</span>
                     </button>
                   </div>
