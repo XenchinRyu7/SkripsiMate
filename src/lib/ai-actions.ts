@@ -44,21 +44,18 @@ export interface BreakDownTaskParams {
   num_substeps?: number;  // How many substeps to create
 }
 
+// Recursive node spec for nested hierarchies
+export interface NodeSpec {
+  title: string;
+  description: string;
+  type: 'phase' | 'step' | 'substep';
+  priority?: 'low' | 'medium' | 'high';
+  estimated_time?: string;
+  children?: NodeSpec[];  // Recursive: allows unlimited nesting
+}
+
 export interface CreateMultipleNodesParams {
-  nodes: Array<{
-    title: string;
-    description: string;
-    type: 'phase' | 'step' | 'substep';
-    priority?: 'low' | 'medium' | 'high';
-    estimated_time?: string;
-    children?: Array<{
-      title: string;
-      description: string;
-      type: 'step' | 'substep';
-      priority?: 'low' | 'medium' | 'high';
-      estimated_time?: string;
-    }>;
-  }>;
+  nodes: NodeSpec[];
 }
 
 export interface AIActionResponse {
