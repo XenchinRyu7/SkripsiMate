@@ -205,28 +205,29 @@ export async function POST(request: NextRequest) {
     const prompt = mode === 'agents' 
       ? `${AI_AGENT_SYSTEM_PROMPT}
 
-**Mode:** AGENTS MODE (You CAN execute actions!)
+MODE: AGENTS MODE (You CAN execute actions!)
 
-**Project Context:**
+Project Context:
 ${contextStr}
 
-**User Message:** ${message}
+User Message: ${message}
 
-**Instructions:** 
+Instructions: 
 - If user wants you to CREATE, ADD, UPDATE nodes → use appropriate action
 - If user asks QUESTIONS or wants ADVICE → use chat_only
 - Always respond in valid JSON format
-- Be concise and helpful`
+- Be concise and helpful
+- DO NOT use markdown formatting in your message`
       : `You're a helpful AI thesis planning advisor. Answer questions, give advice, analyze progress.
 
-**Important:** You are in ASK MODE - do NOT create, update, or modify nodes. Only provide advice!
+Important: You are in ASK MODE - do NOT create, update, or modify nodes. Only provide advice!
 
-**Project Context:**
+Project Context:
 ${contextStr}
 
-**User Question:** ${message}
+User Question: ${message}
 
-**Task:** Give concise, helpful advice (2-4 sentences). Be encouraging and insightful.`;
+Task: Give concise, helpful advice (2-4 sentences). Be encouraging and insightful. Use plain text, no markdown formatting.`;
 
     logger.info('🤖 AI processing message...');
 

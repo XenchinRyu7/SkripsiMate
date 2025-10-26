@@ -25,24 +25,24 @@ export default function AIChatPanel({ projectId, project, onClose, onNodesCreate
       id: '1',
       role: 'system',
       content: mode === 'ask' 
-        ? `💬 **Ask Mode** - I'm here to answer questions and give advice!
+        ? `💬 Ask Mode - I'm here to answer questions and give advice!
 
 I can help you with:
-- 📊 **Analyze** your progress and roadmap
-- 💡 **Suggest** what to work on next
-- 🔍 **Find** gaps in your planning
-- 💬 **Answer** questions about your thesis
+• Analyze your progress and roadmap
+• Suggest what to work on next
+• Find gaps in your planning
+• Answer questions about your thesis
 
 I won't modify your nodes - just provide guidance!
 
-Try: "What should I work on next?" or "Analyze my progress"`
-        : `⚡ **Agents Mode** - I can take action on your behalf!
+Try asking: "What should I work on next?" or "Analyze my progress"`
+        : `⚡ Agents Mode - I can take action on your behalf!
 
 I can help you:
-- ✨ **Create** new phases, steps, or substeps
-- 🔨 **Update** existing node details
-- 🔽 **Break down** complex tasks into subtasks
-- 📝 **Refine** descriptions and requirements
+• Create new phases, steps, or substeps
+• Update existing node details
+• Break down complex tasks into subtasks
+• Refine descriptions and requirements
 
 Just tell me what you want, and I'll do it!
 
@@ -65,24 +65,24 @@ Try: "Add a step for data preprocessing" or "Break down the Literature Review in
       id: '1',
       role: 'system',
       content: mode === 'ask' 
-        ? `💬 **Ask Mode** - I'm here to answer questions and give advice!
+        ? `💬 Ask Mode - I'm here to answer questions and give advice!
 
 I can help you with:
-- 📊 **Analyze** your progress and roadmap
-- 💡 **Suggest** what to work on next
-- 🔍 **Find** gaps in your planning
-- 💬 **Answer** questions about your thesis
+• Analyze your progress and roadmap
+• Suggest what to work on next
+• Find gaps in your planning
+• Answer questions about your thesis
 
 I won't modify your nodes - just provide guidance!
 
-Try: "What should I work on next?" or "Analyze my progress"`
-        : `⚡ **Agents Mode** - I can take action on your behalf!
+Try asking: "What should I work on next?" or "Analyze my progress"`
+        : `⚡ Agents Mode - I can take action on your behalf!
 
 I can help you:
-- ✨ **Create** new phases, steps, or substeps
-- 🔨 **Update** existing node details
-- 🔽 **Break down** complex tasks into subtasks
-- 📝 **Refine** descriptions and requirements
+• Create new phases, steps, or substeps
+• Update existing node details
+• Break down complex tasks into subtasks
+• Refine descriptions and requirements
 
 Just tell me what you want, and I'll do it!
 
@@ -130,9 +130,9 @@ Try: "Add a step for data preprocessing" or "Break down the Literature Review in
         // If Agents mode and action was executed, add action summary
         if (mode === 'agents' && data.action && data.action.type !== 'chat_only') {
           if (data.created_nodes && data.created_nodes.length > 0) {
-            messageContent += `\n\n✅ **Created ${data.created_nodes.length} node(s):**\n`;
+            messageContent += `\n\n✅ Created ${data.created_nodes.length} node(s):\n`;
             data.created_nodes.forEach((node: any) => {
-              messageContent += `- ${node.title} (${node.type})\n`;
+              messageContent += `• ${node.title} (${node.type})\n`;
             });
             
             // Refresh canvas to show new nodes
@@ -142,7 +142,7 @@ Try: "Add a step for data preprocessing" or "Break down the Literature Review in
           }
           
           if (data.updated_nodes && data.updated_nodes.length > 0) {
-            messageContent += `\n\n✏️ **Updated ${data.updated_nodes.length} node(s)**`;
+            messageContent += `\n\n✏️ Updated ${data.updated_nodes.length} node(s)`;
             
             // Refresh canvas
             if (onNodesCreated) {
