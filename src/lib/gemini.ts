@@ -300,7 +300,7 @@ export const generateWithRateLimit = async (prompt: string): Promise<string> => 
  * Check if Gemini is configured
  */
 export const isGeminiConfigured = (): boolean => {
-  return Boolean(GEMINI_API_KEY && generationModel);
+  return Boolean(API_KEYS.length > 0 && generationModel);
 };
 
 // ============================================

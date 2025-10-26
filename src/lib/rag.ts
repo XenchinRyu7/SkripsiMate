@@ -147,6 +147,7 @@ export async function buildRAGContext(
   if (!supabaseAdmin) {
     return {
       relevantNodes: [],
+      allPhases: [],
       projectSummary: '',
       totalNodes: 0,
       completedNodes: 0,
@@ -175,7 +176,7 @@ export async function buildRAGContext(
   // ALSO get ALL phases for structure overview (so AI can always find phase IDs)
   const { data: phases } = await supabaseAdmin
     .from('nodes')
-    .select('id, title, type, status, description')
+    .select('id, title, type, status, description, level, parent_id, metadata')
     .eq('project_id', projectId)
     .eq('type', 'phase')
     .order('order_index', { ascending: true });
