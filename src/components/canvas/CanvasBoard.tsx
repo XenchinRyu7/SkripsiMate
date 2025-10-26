@@ -500,7 +500,6 @@ function CanvasBoardInner({ projectId, nodes: dbNodes, onNodesChange, onProjectU
       let deletedSuccessfully = 0;
       let latestRemainingNodes: any[] | null = null;
       
-      console.log('🗑️ Deleting', nodesToDelete.length, 'node(s)...');
       
       for (const node of nodesToDelete) {
         const response = await fetch(`/api/nodes/${node.id}?projectId=${projectId}`, {
@@ -512,8 +511,6 @@ function CanvasBoardInner({ projectId, nodes: dbNodes, onNodesChange, onProjectU
           console.error('❌ Failed to delete node:', node.id, error);
         } else {
           const deleteData = await response.json();
-          console.log('✅ Node deleted successfully:', node.id);
-          console.log('📦 Remaining nodes from DELETE:', deleteData.nodes?.length);
           
           // Keep track of latest remaining nodes from DELETE response
           if (deleteData.nodes) {
@@ -526,30 +523,21 @@ function CanvasBoardInner({ projectId, nodes: dbNodes, onNodesChange, onProjectU
       
       // If at least one node was deleted, recalculate progress
       if (deletedSuccessfully > 0) {
-        console.log('✅ Successfully deleted', deletedSuccessfully, 'node(s)');
-        console.log('🔄 Waiting 500ms for DB to stabilize...');
         
         // Wait a bit for database to stabilize
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        console.log('🔄 Recalculating progress...');
         
         // Call recalculate API
         const recalcResponse = await fetch(`/api/projects/${projectId}/recalculate`, {
           method: 'POST',
         });
         
-        console.log('📡 Recalculate API response status:', recalcResponse.status);
         
         if (recalcResponse.ok) {
           const responseData = await recalcResponse.json();
-          console.log('📦 Recalculate API response:', responseData);
           
           const { nodes: updatedNodes, project: updatedProject, summary } = responseData;
-          
-          console.log('📊 Progress Summary:', summary);
-          console.log('📈 Total nodes in DB:', summary?.totalNodes);
-          console.log('✅ Updated project metadata:', updatedProject?.metadata);
           
           // Update local state with recalculated data
           setNodes(convertToReactFlowNodes(updatedNodes));
@@ -558,17 +546,13 @@ function CanvasBoardInner({ projectId, nodes: dbNodes, onNodesChange, onProjectU
           
           // Update project metadata (for navbar progress)
           if (onProjectUpdate && updatedProject) {
-            console.log('🔄 Calling onProjectUpdate with:', updatedProject);
             onProjectUpdate(updatedProject);
           } else {
             console.warn('⚠️ onProjectUpdate not available or updatedProject is null');
           }
           
-          console.log('✅ Progress recalculated successfully!');
           toast.success(`${deletedSuccessfully} node(s) deleted. Progress updated to ${summary?.progressPercentage}%!`);
         } else {
-          const errorText = await recalcResponse.text();
-          console.error('❌ Failed to recalculate progress:', errorText);
           toast.warning('Nodes deleted but progress may need manual refresh');
         }
       }

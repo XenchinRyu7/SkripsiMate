@@ -72,48 +72,21 @@ export default function CanvasHeader({ project, onBack, onToggleChat, chatOpen, 
               fetch(`/api/projects/${project.id}/debug`)
                 .then(r => r.json())
                 .then(data => {
-                  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                  console.log('🔍 DATABASE REALITY CHECK');
-                  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                  console.log('📦 Total Nodes in DB:', data.summary.totalNodes);
-                  console.log('✅ Completed Work:', `${data.summary.completedWork}/${data.summary.totalWork}`);
-                  console.log('🎯 Real Progress:', `${data.summary.progressPercentage}%`);
-                  console.log('');
-                  console.log('📋 Breakdown:');
-                  console.log('  Phases:', `${data.breakdown.phases.total} (${data.breakdown.phases.completed} completed, ${data.breakdown.phases.pending} pending, ${data.breakdown.phases.in_progress} in progress)`);
-                  console.log('  Steps:', `${data.breakdown.steps.total} (${data.breakdown.steps.completed} completed, ${data.breakdown.steps.pending} pending)`);
-                  console.log('  Substeps:', `${data.breakdown.substeps.total} (${data.breakdown.substeps.completed} completed, ${data.breakdown.substeps.pending} pending)`);
-                  
                   if (data.incompleteNodes.length > 0) {
-                    console.log('');
-                    console.log('⚠️ INCOMPLETE NODES:');
                     console.table(data.incompleteNodes);
                     toast.warning(`Found ${data.incompleteNodes.length} incomplete node(s). Check console for details!`);
                   } else {
-                    console.log('');
-                    console.log('✅ All nodes completed!');
                     toast.success('All nodes completed!');
                   }
                   
-                  console.log('');
-                  console.log('📊 Current UI shows:', `${progress}% (${metadata?.completedSteps}/${metadata?.totalSteps})`);
-                  console.log('📊 Real DB state:', `${data.summary.progressPercentage}% (${data.summary.completedWork}/${data.summary.totalWork})`);
-                  
                   if (data.summary.totalNodes !== metadata?.totalSteps) {
-                    console.log('');
-                    console.log('⚠️ SYNC ISSUE DETECTED!');
-                    console.log('   UI thinks:', metadata?.totalSteps, 'nodes');
-                    console.log('   DB has:', data.summary.totalNodes, 'nodes');
-                    console.log('   Difference:', Math.abs(data.summary.totalNodes - (metadata?.totalSteps || 0)), 'nodes');
                     toast.error(`Sync issue! UI shows ${metadata?.totalSteps} nodes but DB has ${data.summary.totalNodes}. Click 🔄 to fix!`);
                   } else {
                     toast.success(`DB state: ${data.summary.progressPercentage}% (${data.summary.totalNodes} nodes)`);
                   }
                   
-                  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 })
                 .catch(err => {
-                  console.error('❌ Failed to fetch debug data:', err);
                   toast.error('Failed to fetch debug data');
                 });
             }}
@@ -130,7 +103,6 @@ export default function CanvasHeader({ project, onBack, onToggleChat, chatOpen, 
               fetch(`/api/projects/${project.id}/recalculate`, { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
-                  console.log('🔄 Force sync result:', data);
                   toast.success(`Progress synced! ${data.summary.progressPercentage}% (${data.summary.totalNodes} nodes)`);
                   
                   // Reload after short delay
@@ -139,7 +111,6 @@ export default function CanvasHeader({ project, onBack, onToggleChat, chatOpen, 
                   }, 1000);
                 })
                 .catch(err => {
-                  console.error('❌ Failed to sync:', err);
                   toast.error('Failed to sync progress');
                 });
             }}
@@ -160,7 +131,6 @@ export default function CanvasHeader({ project, onBack, onToggleChat, chatOpen, 
               })
                 .then(r => r.json())
                 .then(data => {
-                  console.log('🧹 Cleanup result:', data);
                   if (data.summary.deletedCount > 0) {
                     toast.success(`Cleaned up ${data.summary.deletedCount} orphaned node(s)!`);
                   } else {
@@ -173,7 +143,6 @@ export default function CanvasHeader({ project, onBack, onToggleChat, chatOpen, 
                   }, 1000);
                 })
                 .catch(err => {
-                  console.error('❌ Failed to cleanup:', err);
                   toast.error('Failed to cleanup nodes');
                 });
             }}
