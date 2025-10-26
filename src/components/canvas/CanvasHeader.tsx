@@ -4,6 +4,7 @@
 import { Project } from '@/lib/supabase';
 import { FolderOpen, Bot, Users, Download, Settings, Save, Loader2, ArrowLeft } from "lucide-react";
 import { useToast } from '@/components/ui/Toast';
+import { clientLogger } from '@/lib/logger';
 
 interface CanvasHeaderProps {
   project: Project;

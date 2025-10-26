@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { embedText } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 
 // Note: Using Node.js runtime (not Edge) because crypto module is needed
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`Batch embedding ${nodes.length} nodes...`);
+    logger.info(`Batch embedding ${nodes.length} nodes...`);
 
     // Generate embeddings for all nodes
     const embeddingPromises = nodes.map(async (node) => {

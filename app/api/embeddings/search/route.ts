@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { embedText } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'edge';
 
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Generate embedding for query
-    console.log(`Embedding search query: ${query}`);
+    logger.info(`Embedding search query: ${query}`);
     const queryEmbedding = await embedText(query);
 
     // Call Supabase RPC function for similarity search

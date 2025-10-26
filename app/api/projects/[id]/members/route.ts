@@ -1,6 +1,7 @@
 // Project Members API - Get & Invite
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 // GET /api/projects/[id]/members - Get all members of a project
 export async function GET(
@@ -175,7 +176,7 @@ export async function POST(
     if (error) throw error;
 
     // TODO: Send email invitation here
-    console.log(`Invitation sent to ${email} for project ${projectId}`);
+    logger.info(`Invitation sent to ${email} for project ${projectId}`);
 
     return NextResponse.json({
       success: true,

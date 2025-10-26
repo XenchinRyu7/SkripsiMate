@@ -1,6 +1,7 @@
 // API Route: Update and Delete Edge
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export async function PATCH(
   request: NextRequest,
@@ -11,7 +12,7 @@ export async function PATCH(
     const edgeId = decodeURIComponent(resolvedParams.id);
     const { projectId, updates } = await request.json();
     
-    console.log('PATCH edge request:', { edgeId, projectId, updates });
+    logger.debug('🔗', 'PATCH edge request:', { edgeId, projectId, updates });
 
     if (!projectId) {
       return NextResponse.json(
@@ -93,7 +94,7 @@ export async function DELETE(
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('projectId');
 
-    console.log('DELETE edge request:', { edgeId, projectId });
+    logger.debug('🗑️', 'DELETE edge request:', { edgeId, projectId });
 
     if (!projectId) {
       return NextResponse.json(
@@ -128,7 +129,7 @@ export async function DELETE(
     const sourceId = uuids[0];
     const targetId = uuids[1];
 
-    console.log('Parsed edge:', { edgeId, sourceId, targetId, uuidCount: uuids.length });
+    logger.debug('🔍', 'Parsed edge:', { edgeId, sourceId, targetId, uuidCount: uuids.length });
 
     // Check if this is a parent-child relationship edge
     const { data: targetNode } = await supabaseAdmin
@@ -139,7 +140,7 @@ export async function DELETE(
 
     if (targetNode && targetNode.parent_id === sourceId) {
       // This is a parent-child edge, remove the parent_id relationship
-      console.log('Removing parent_id relationship for node:', targetId);
+      logger.info('Removing parent_id relationship for node:', targetId);
       const { error: updateNodeError } = await supabaseAdmin
         .from('nodes')
         .update({ parent_id: null })

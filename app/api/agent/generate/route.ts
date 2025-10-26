@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateJSON } from '@/lib/gemini';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
 
 // Removed edge runtime - needs access to SUPABASE_SERVICE_ROLE_KEY
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     // If mode is 'merge', delete existing nodes first
     if (generateMode === 'merge') {
-      console.log('Deleting existing nodes for project:', projectId);
+      logger.info('Deleting existing nodes for project:', projectId);
       const { error: deleteError } = await supabaseAdmin
         .from('nodes')
         .delete()
@@ -113,7 +114,7 @@ Return ONLY valid JSON matching the specified format.
 `;
 
     // Call Gemini AI
-    console.log('Calling Gemini AI to generate roadmap...');
+    logger.info('Calling Gemini AI to generate roadmap...');
     const fullPrompt = `${PLANNER_PROMPT}\n\n${userPrompt}`;
     const aiResponse = await generateJSON<{ phases: PhaseStructure[] }>(fullPrompt);
 
@@ -248,7 +249,7 @@ Return ONLY valid JSON matching the specified format.
     }
 
     // Insert nodes into Supabase
-    console.log(`Inserting ${nodes.length} nodes into database...`);
+    logger.info(`Inserting ${nodes.length} nodes into database...`);
     const { data, error } = await supabaseAdmin
       .from('nodes')
       .insert(nodes)

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { embedText } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 
 // Note: Using Node.js runtime (not Edge) because crypto module is needed
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate new embedding
-    console.log(`Generating embedding for node: ${node.title}`);
+    logger.info(`Generating embedding for node: ${node.title}`);
     const embeddingVector = await embedText(content);
 
     // Delete old embeddings for this node

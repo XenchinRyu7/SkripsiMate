@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Project, Node as DBNode, supabase } from '@/lib/supabase';
+import { clientLogger } from '@/lib/logger';
 import { Button } from '@/components/ui/Button';
 
 interface GenerateRoadmapFormProps {
@@ -60,7 +61,7 @@ export default function GenerateRoadmapForm({ project, onClose, onGenerated }: G
       const data = await response.json();
       onGenerated(data.nodes);
     } catch (err: any) {
-      console.error('Error generating roadmap:', err);
+      clientLogger.error('Error generating roadmap:', err);
       setError(err.message || 'Failed to generate roadmap. Please try again.');
       setGenerating(false);
     }

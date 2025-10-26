@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/Toast';
+import { clientLogger } from '@/lib/logger';
 import { Project, Node as DBNode } from '@/lib/supabase';
 import CanvasBoard from '@/components/canvas/CanvasBoard';
 import AIChatPanel from '@/components/canvas/AIChatPanel';
@@ -122,7 +123,7 @@ export default function ProjectCanvasPage() {
         // Auto-recalculate progress for old projects without progressPercentage
         const metadata = projectData.metadata as any;
         if (!metadata?.progressPercentage && nodesData.length > 0) {
-          console.log('Old project detected, recalculating progress...');
+          clientLogger.info('Old project detected, recalculating progress...');
           try {
             const recalcResponse = await fetch(`/api/projects/${projectId}/recalculate`, {
               method: 'POST',
@@ -161,10 +162,10 @@ export default function ProjectCanvasPage() {
 
   // Handle project update (called by CanvasBoard after recalculate)
   const handleProjectUpdate = (updatedProject: Project) => {
-    console.log('📥 handleProjectUpdate called with:', updatedProject);
-    console.log('📈 New progress:', (updatedProject.metadata as any)?.progressPercentage);
+    clientLogger.debug('📥', 'handleProjectUpdate called with:', updatedProject);
+    clientLogger.debug('📈', 'New progress:', (updatedProject.metadata as any)?.progressPercentage);
     setProject(updatedProject);
-    console.log('✅ Project state updated!');
+    clientLogger.debug('✅', 'Project state updated!');
   };
 
   useEffect(() => {
@@ -175,9 +176,23 @@ export default function ProjectCanvasPage() {
     }
   }, [user, authLoading, projectId, router]);
 
-  const handleRoadmapGenerated = (generatedNodes: DBNode[]) => {
+  const handleRoadmapGenerated = async (generatedNodes: DBNode[]) => {
+    clientLogger.info('🎨 AI generation complete! Updating canvas with', generatedNodes.length, 'nodes');
+    
+    // Update nodes state
     setNodes(generatedNodes);
+    
+    // Call onNodesChange to ensure proper state propagation
+    handleNodesUpdate(generatedNodes);
+    
+    // Refetch project metadata to get updated progress
+    await fetchProjectMetadata();
+    
+    // Close generate form
     setShowGenerateForm(false);
+    
+    toast.success(`Successfully generated ${generatedNodes.length} nodes! 🎉`);
+    clientLogger.debug('✅', 'Canvas updated successfully!');
   };
 
   const handleSave = async () => {
@@ -188,7 +203,7 @@ export default function ProjectCanvasPage() {
       await new Promise(resolve => setTimeout(resolve, 500)); // Simulate save
       toast.success('All changes saved successfully!');
     } catch (error) {
-      console.error('Save error:', error);
+      clientLogger.error('Save error:', error);
       toast.error('Failed to save changes');
     } finally {
       setSaving(false);

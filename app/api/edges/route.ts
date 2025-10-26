@@ -1,6 +1,7 @@
 // API Route: Create Edge
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
       .eq('id', target)
       .single();
 
-    console.log('Creating edge:', { source, target, sourceNode: sourceNode?.type, targetNode: targetNode?.type });
+    logger.debug('🔗', 'Creating edge:', { source, target, sourceNode: sourceNode?.type, targetNode: targetNode?.type });
 
     // Check if this is a valid parent-child relationship
     const isParentChild = (
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     if (isParentChild) {
       // Set parent_id relationship in database
-      console.log('Setting parent_id relationship');
+      logger.info('Setting parent_id relationship');
       const { error: updateError } = await supabaseAdmin
         .from('nodes')
         .update({ parent_id: source })
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Save as custom edge in project metadata
-      console.log('Saving as custom edge');
+      logger.info('Saving as custom edge');
       const { data: project, error: projectError } = await supabaseAdmin
         .from('projects')
         .select('metadata')
