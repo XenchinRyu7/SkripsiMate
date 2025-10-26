@@ -97,22 +97,35 @@ Try: "Add a step for data preprocessing" or "Break down the Literature Review in
   const saveMessage = async (message: Message, actionData?: any) => {
     if (!user) return;
 
+    const payload = {
+      userId: user.uid,
+      role: message.role,
+      content: message.content,
+      mode: mode,
+      action_type: actionData?.action?.type,
+      created_nodes: actionData?.created_nodes?.length || 0,
+      updated_nodes: actionData?.updated_nodes?.length || 0,
+    };
+
+    clientLogger.debug('💾 Attempting to save chat message:', JSON.stringify(payload, null, 2));
+
     try {
-      await fetch(`/api/chat/${projectId}`, {
+      const response = await fetch(`/api/chat/${projectId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.uid,
-          role: message.role,
-          content: message.content,
-          mode: mode,
-          action_type: actionData?.action?.type,
-          created_nodes: actionData?.created_nodes?.length || 0,
-          updated_nodes: actionData?.updated_nodes?.length || 0,
-        }),
+        body: JSON.stringify(payload),
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        clientLogger.error('❌ Failed to save chat message! Status:', response.status);
+        clientLogger.error('Response:', result);
+      } else {
+        clientLogger.debug('✅ Chat message saved successfully!');
+      }
     } catch (error) {
-      clientLogger.error('Failed to save message:', error);
+      clientLogger.error('❌ Exception while saving message:', error);
     }
   };
 

@@ -110,13 +110,20 @@ async function executeAction(
           },
         };
 
+        logger.debug('🔵 Attempting to insert parent node:', JSON.stringify(parentNode, null, 2));
+
         const { data: parentData, error: parentError } = await supabaseAdmin
           .from('nodes')
           .insert([parentNode])
           .select();
 
         if (parentError) {
-          logger.error('Failed to create parent node:', parentError);
+          logger.error('❌ FAILED to create parent node!');
+          logger.error('Error code:', parentError.code);
+          logger.error('Error message:', parentError.message);
+          logger.error('Error details:', parentError.details);
+          logger.error('Error hint:', parentError.hint);
+          logger.error('Node data attempted:', JSON.stringify(parentNode, null, 2));
           continue;
         }
 
@@ -146,14 +153,24 @@ async function executeAction(
               },
             };
 
+            logger.debug('🟢 Attempting to insert child node:', JSON.stringify(childNode, null, 2));
+
             const { data: childData, error: childError } = await supabaseAdmin
               .from('nodes')
               .insert([childNode])
               .select();
 
-            if (!childError && childData) {
+            if (childError) {
+              logger.error('❌ FAILED to create child node!');
+              logger.error('Error code:', childError.code);
+              logger.error('Error message:', childError.message);
+              logger.error('Error details:', childError.details);
+              logger.error('Error hint:', childError.hint);
+              logger.error('Node data attempted:', JSON.stringify(childNode, null, 2));
+            } else if (childData) {
               createdNodes.push(...childData);
               maxOrder++;
+              logger.debug('✅ Child node created successfully!');
             }
           }
         }

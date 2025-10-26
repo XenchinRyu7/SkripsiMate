@@ -73,7 +73,19 @@ export async function POST(
       updated_nodes,
     } = await request.json();
 
+    logger.debug('📥 Received chat message save request:', {
+      projectId,
+      userId,
+      role,
+      mode,
+      action_type,
+      created_nodes,
+      updated_nodes,
+      contentLength: content?.length || 0,
+    });
+
     if (!projectId || !userId || !role || !content || !mode) {
+      logger.error('❌ Missing required fields!', { projectId, userId, role, mode });
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -87,29 +99,38 @@ export async function POST(
       );
     }
 
+    const insertData = {
+      project_id: projectId,
+      user_id: userId,
+      role,
+      content,
+      mode,
+      action_type: action_type || null,
+      created_nodes: created_nodes || 0,
+      updated_nodes: updated_nodes || 0,
+    };
+
+    logger.debug('💾 Attempting to insert chat message:', JSON.stringify(insertData, null, 2));
+
     const { data, error } = await supabaseAdmin
       .from('chat_messages')
-      .insert([
-        {
-          project_id: projectId,
-          user_id: userId,
-          role,
-          content,
-          mode,
-          action_type: action_type || null,
-          created_nodes: created_nodes || 0,
-          updated_nodes: updated_nodes || 0,
-        },
-      ])
+      .insert([insertData])
       .select();
 
     if (error) {
-      logger.error('Failed to save chat message:', error);
+      logger.error('❌ FAILED to save chat message!');
+      logger.error('Error code:', error.code);
+      logger.error('Error message:', error.message);
+      logger.error('Error details:', error.details);
+      logger.error('Error hint:', error.hint);
+      logger.error('Insert data attempted:', JSON.stringify(insertData, null, 2));
       return NextResponse.json(
-        { error: 'Failed to save message' },
+        { error: 'Failed to save message', details: error },
         { status: 500 }
       );
     }
+
+    logger.debug('✅ Chat message saved successfully!', data?.[0]?.id);
 
     return NextResponse.json({
       success: true,
