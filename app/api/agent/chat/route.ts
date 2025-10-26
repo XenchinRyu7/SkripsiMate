@@ -53,9 +53,10 @@ async function executeAction(
         position_y: yPos,
         status: 'pending' as const,
         priority: nodeParams.priority || 'medium',
-        estimated_time: nodeParams.estimated_time || '1 week',
         order_index: maxOrder + 1,
-        metadata: {},
+        metadata: {
+          estimated_time: nodeParams.estimated_time || '1 week',
+        },
       };
 
       const { data, error } = await supabaseAdmin
@@ -103,9 +104,10 @@ async function executeAction(
           position_y: yPos,
           status: 'pending' as const,
           priority: nodeSpec.priority || 'medium',
-          estimated_time: nodeSpec.estimated_time || '1 week',
           order_index: maxOrder + 1,
-          metadata: {},
+          metadata: {
+            estimated_time: nodeSpec.estimated_time || '1 week',
+          },
         };
 
         const { data: parentData, error: parentError } = await supabaseAdmin
@@ -138,9 +140,10 @@ async function executeAction(
               position_y: yPos + (i * 150),
               status: 'pending' as const,
               priority: child.priority || 'medium',
-              estimated_time: child.estimated_time || '1 week',
               order_index: maxOrder + 1,
-              metadata: {},
+              metadata: {
+                estimated_time: child.estimated_time || '1 week',
+              },
             };
 
             const { data: childData, error: childError } = await supabaseAdmin
@@ -231,9 +234,10 @@ Return ONLY a JSON array of substeps:
           position_y: parentNode.position_y + (i * 150),
           status: 'pending' as const,
           priority: 'medium' as const,
-          estimated_time: substep.estimated_time || '1 day',
           order_index: i,
-          metadata: {},
+          metadata: {
+            estimated_time: substep.estimated_time || '1 day',
+          },
         };
 
         const { data, error } = await supabaseAdmin
