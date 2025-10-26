@@ -106,6 +106,21 @@ Response: {
   "message": "I've added 'Data Preprocessing' as a new step in Phase 2! This includes data cleaning, normalization, and preparation."
 }
 
+User: "Break down 'Langkah 3: Pemilihan Model' into substeps"
+Response: {
+  "action": {
+    "type": "break_down_task",
+    "params": {
+      "node_id": "[find the node_id from context for 'Langkah 3: Pemilihan Model']",
+      "num_substeps": 3
+    },
+    "reasoning": "User wants to break down step into detailed substeps"
+  },
+  "message": "I've broken down 'Langkah 3: Pemilihan Model' into 3 actionable substeps!"
+}
+
+IMPORTANT: For break_down_task, you MUST search the Project Context for the node's ID by matching the title!
+
 User: "Buatkan roadmap untuk klasifikasi tanaman kaktus"
 Response: {
   "action": {
